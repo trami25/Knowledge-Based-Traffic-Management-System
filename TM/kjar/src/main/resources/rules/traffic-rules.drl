@@ -1,0 +1,40 @@
+package rules
+import com.ftn.sbnz.model.models.TrafficDensity;
+import com.ftn.sbnz.model.models.TrafficAction;
+import com.ftn.sbnz.model.models.Notification;
+import com.ftn.sbnz.model.models.PedestrianDetected;
+import com.ftn.sbnz.model.models.Accident;
+import com.ftn.sbnz.model.models.IllegalParking;
+
+rule "Rush rour - extend the green light"
+when 
+    $t : TrafficDensity($c : crossroad, value > 70)
+    TimeOfDay($h : hour,  $h >= 7 && $h <= 9)
+then 
+    insert(new TrafficAction($c, "extendGreen", 30))
+    insert(new Notification("Rush hour: extended green light on " + $c))
+end
+
+
+rule "Accident detected - block crossroad"
+when
+    Accident($c : crossroad, severity == "high")
+then
+    insert(new TrafficAction($c, "blockCrossroad"));
+    insert(new Notification("Accident on " + $c + " – crossroad is blocked"));
+end
+
+rule "Pedestrian crossing - red light"
+when
+    PedestrianDetected($c : crossroad)
+then
+    insert(new TrafficAction($c, "setRedForVehicles"));
+    insert(new Notification("Pedestrian detected on " + $c));
+end
+
+rule "Illegal parking notification"
+when
+    IllegalParking($c : crossroad)
+then
+    insert(new Notification("Illegal parking on " + $c));
+end

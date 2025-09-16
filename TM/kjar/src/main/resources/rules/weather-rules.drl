@@ -1,0 +1,13 @@
+package rules
+import com.ftn.sbnz.model.models.Weather;
+import com.ftn.sbnz.model.models.TrafficAction;
+import com.ftn.sbnz.model.models.Notification;
+
+rule "Bad weather extend green"
+when
+    Weather(type == "rain" || type == "snow",
+            intensity == "medium" || intensity == "high")
+then
+    insert(new TrafficAction("All", "extendGreen", 15));
+    insert(new Notification("Bad weather, extended green light on crossroads"));
+end

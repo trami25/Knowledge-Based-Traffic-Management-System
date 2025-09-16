@@ -1,0 +1,12 @@
+package rules
+import com.ftn.sbnz.model.models.EventDay;
+import com.ftn.sbnz.model.models.TrafficAction;
+import com.ftn.sbnz.model.models.Notification;
+
+rule "Mass event - reroute traffic"
+when
+    EventDay(expectedTraffic > 1000, eventType == "concert" || eventType == "sports")
+then
+    insert(new TrafficAction("All", "rerouteTraffic"));
+    insert(new Notification("Mass event - reroute traffic"));
+end

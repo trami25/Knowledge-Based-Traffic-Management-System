@@ -1,0 +1,58 @@
+package rules
+import com.ftn.sbnz.model.models.TrafficDensity;
+import com.ftn.sbnz.model.models.Vehicle;
+import com.ftn.sbnz.model.models.Accident;
+import com.ftn.sbnz.model.models.PedestrianDetected;
+import com.ftn.sbnz.model.models.reports.NormalReport;
+import com.ftn.sbnz.model.models.reports.ReportRequest;
+import com.ftn.sbnz.model.models.reports.DailyTrafficSummary;
+import com.ftn.sbnz.model.models.reports.TrendReport;
+import com.ftn.sbnz.model.models.reports.CongestionInterval;
+import com.ftn.sbnz.model.models.reports.MaxPeriodReport;
+
+
+
+
+rule "Generate NormalReport"
+when
+    $td : TrafficDensity($c : crossroad, $density : value)
+    accumulate( $v : Vehicle(crossroad == $c) over window:time(5m),
+                $avgSpeed : average($v.speed) )
+    accumulate( $a : Accident(crossroad == $c) over window:time(15m),
+                $accCount : count($a) )
+    accumulate( $p : PedestrianDetected(crossroad == $c) over window:time(10m),
+                $pedCount : count($p) )
+then
+    NormalReport r = new NormalReport($c, $avgSpeed, $density,
+                                      (int)$accCount, (int)$pedCount);
+    insert(r);
+end
+
+rule "Generate TrendReport"
+when
+    $req : ReportRequest(type == "Trend", $cr : crossroadId, $from : fromDate, $to : toDate, $period : period)
+    accumulate(
+        $d : DailyTrafficSummary(crossroad == $cr,
+                                 date >= $from, date <= $to,
+                                 period == $period),
+        $avgD : average($d.avgDensity),
+        $avgS : average($d.avgSpeed),
+        $sumAcc : sum($d.accidents)
+    )
+then
+    TrendReport tr = new TrendReport($cr, $period, $from, $to, $avgD, $avgS, (int)$sumAcc);
+    insert(tr);
+end
+
+
+rule "Generate MaxPeriodReport"
+when
+    $req : ReportRequest(type == "MaxPeriod", $cr : crossroadId)
+    accumulate(
+        $ci : CongestionInterval(crossroad == $cr),
+        $maxDur : max($ci.duration)
+    )
+then
+    MaxPeriodReport rpt = new MaxPeriodReport($cr, $maxDur);
+    insert(rpt);
+end

@@ -1,0 +1,21 @@
+package rules
+import com.ftn.sbnz.model.models.EmergencyVehicle;
+import com.ftn.sbnz.model.models.PublicTransportDelay;
+import com.ftn.sbnz.model.models.TrafficAction;
+import com.ftn.sbnz.model.models.Notification;
+
+rule "Emergency vehicle priority"
+when
+    EmergencyVehicle($c : location, $d : direction)
+then
+    insert(new TrafficAction($c, "allowPass", "priority"));
+    insert(new Notification("Priority for emergency vehicle on crossroad " + $c));
+end
+
+rule "Bus delay - priority"
+when
+    PublicTransportDelay($line : line, minutes > 10)
+then
+    insert(new TrafficAction("All", "prioritizeBus", $line));
+    insert(new Notification("Autobus " + $line + " is delayed, give the priority on traffic lights"));
+end
