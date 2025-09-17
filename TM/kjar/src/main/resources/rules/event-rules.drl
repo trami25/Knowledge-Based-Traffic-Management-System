@@ -8,5 +8,7 @@ when
     EventDay(expectedTraffic > 1000, eventType == "concert" || eventType == "sports")
 then
     insert(new TrafficAction("All", "rerouteTraffic"));
-    insert(new Notification("Mass event - reroute traffic"));
+    Notification n = new Notification("Mass event - reroute traffic");
+    insert(n);
+    System.out.println(n);
 end

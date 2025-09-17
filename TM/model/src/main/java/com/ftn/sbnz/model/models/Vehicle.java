@@ -1,13 +1,14 @@
 package com.ftn.sbnz.model.models;
 
 public class Vehicle {
-    
+
     private String crossroad;
-    private double speed;
+    public double speed;
     private String type; // e.g. car, truck, motorcycle
 
     public Vehicle() {
     }
+
     public Vehicle(String crossroad, double speed, String type) {
         this.crossroad = crossroad;
         this.speed = speed;
@@ -17,6 +18,7 @@ public class Vehicle {
     public String getCrossroad() {
         return crossroad;
     }
+
     public void setCrossroad(String crossroad) {
         this.crossroad = crossroad;
     }
@@ -24,6 +26,7 @@ public class Vehicle {
     public double getSpeed() {
         return speed;
     }
+
     public void setSpeed(double speed) {
         this.speed = speed;
     }
@@ -31,6 +34,7 @@ public class Vehicle {
     public String getType() {
         return type;
     }
+
     public void setType(String type) {
         this.type = type;
     }
