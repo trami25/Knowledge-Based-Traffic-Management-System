@@ -23,6 +23,6 @@ public class CongestionInterval {
     public void setEndTime(long endTime) { this.endTime = endTime; }
 
     public long getDuration() {
-        return (endTime - startTime) / 1000 / 60; // trajanje u minutima
+        return (endTime - startTime) / 1000 / 60; 
     }
 }
