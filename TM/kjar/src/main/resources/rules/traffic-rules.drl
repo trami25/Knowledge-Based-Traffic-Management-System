@@ -5,14 +5,17 @@ import com.ftn.sbnz.model.models.Notification;
 import com.ftn.sbnz.model.models.PedestrianDetected;
 import com.ftn.sbnz.model.models.Accident;
 import com.ftn.sbnz.model.models.IllegalParking;
+import com.ftn.sbnz.model.models.TimeOfDay;
 
 rule "Rush rour - extend the green light"
 when 
     $t : TrafficDensity($c : crossroad, value > 70)
     TimeOfDay($h : hour,  $h >= 7 && $h <= 9)
 then 
-    insert(new TrafficAction($c, "extendGreen", 30))
-    insert(new Notification("Rush hour: extended green light on " + $c))
+    insert(new TrafficAction($c, "extendGreen", 30));
+    Notification n1 = new Notification("Rush hour: extended green light on " + $c);
+    insert(n1);
+    System.out.println(n1);
 end
 
 
@@ -21,7 +24,9 @@ when
     Accident($c : crossroad, severity == "high")
 then
     insert(new TrafficAction($c, "blockCrossroad"));
-    insert(new Notification("Accident on " + $c + " – crossroad is blocked"));
+    Notification n2 = new Notification("Accident on " + $c + " – crossroad is blocked");
+    insert(n2);
+    System.out.println(n2);
 end
 
 rule "Pedestrian crossing - red light"
@@ -29,12 +34,16 @@ when
     PedestrianDetected($c : crossroad)
 then
     insert(new TrafficAction($c, "setRedForVehicles"));
-    insert(new Notification("Pedestrian detected on " + $c));
+    Notification n3 = new Notification("Pedestrian detected on " + $c);
+    insert(n3);
+    System.out.println(n3);
 end
 
 rule "Illegal parking notification"
 when
     IllegalParking($c : crossroad)
 then
-    insert(new Notification("Illegal parking on " + $c));
+    Notification n4 = new Notification("Illegal parking on " + $c);
+    insert(n4);
+    System.out.println(n4);
 end

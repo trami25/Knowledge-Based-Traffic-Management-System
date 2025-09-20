@@ -10,8 +10,17 @@ import com.ftn.sbnz.model.models.reports.TrendReport;
 import com.ftn.sbnz.model.models.reports.CongestionInterval;
 import com.ftn.sbnz.model.models.reports.MaxPeriodReport;
 
+declare Vehicle
+    @role( event )
+end
 
+declare Accident
+    @role( event )
+end
 
+declare PedestrianDetected
+    @role( event )
+end
 
 rule "Generate NormalReport"
 when
@@ -24,7 +33,7 @@ when
                 $pedCount : count($p) )
 then
     NormalReport r = new NormalReport($c, $avgSpeed, $density,
-                                      (int)$accCount, (int)$pedCount);
+                                      ((Long)$accCount).intValue(), ((Long)$pedCount).intValue());
     insert(r);
 end
 
@@ -50,7 +59,7 @@ when
     $req : ReportRequest(type == "MaxPeriod", $cr : crossroadId)
     accumulate(
         $ci : CongestionInterval(crossroad == $cr),
-        $maxDur : max($ci.duration)
+        $maxDur : max($ci.getDuration())
     )
 then
     MaxPeriodReport rpt = new MaxPeriodReport($cr, $maxDur);

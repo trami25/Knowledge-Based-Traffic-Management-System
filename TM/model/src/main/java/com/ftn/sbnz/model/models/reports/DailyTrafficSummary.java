@@ -6,13 +6,15 @@ public class DailyTrafficSummary {
     private String crossroad;
     private Date date;
     private String period; // npr. "07:00-09:00"
-    private double avgDensity;
-    private double avgSpeed;
-    private int accidents;
+    public double avgDensity;
+    public double avgSpeed;
+    public int accidents;
 
-    public DailyTrafficSummary() {}
+    public DailyTrafficSummary() {
+    }
 
-    public DailyTrafficSummary(String crossroad, Date date, String period, double avgDensity, double avgSpeed, int accidents) {
+    public DailyTrafficSummary(String crossroad, Date date, String period, double avgDensity, double avgSpeed,
+            int accidents) {
         this.crossroad = crossroad;
         this.date = date;
         this.period = period;
@@ -21,21 +23,51 @@ public class DailyTrafficSummary {
         this.accidents = accidents;
     }
 
-    public String getCrossroad() { return crossroad; }
-    public void setCrossroad(String crossroad) { this.crossroad = crossroad; }
+    public String getCrossroad() {
+        return crossroad;
+    }
 
-    public Date getDate() { return date; }
-    public void setDate(Date date) { this.date = date; }
+    public void setCrossroad(String crossroad) {
+        this.crossroad = crossroad;
+    }
 
-    public String getPeriod() { return period; }
-    public void setPeriod(String period) { this.period = period; }
+    public Date getDate() {
+        return date;
+    }
 
-    public double getAvgDensity() { return avgDensity; }
-    public void setAvgDensity(double avgDensity) { this.avgDensity = avgDensity; }
+    public void setDate(Date date) {
+        this.date = date;
+    }
 
-    public double getAvgSpeed() { return avgSpeed; }
-    public void setAvgSpeed(double avgSpeed) { this.avgSpeed = avgSpeed; }
+    public String getPeriod() {
+        return period;
+    }
 
-    public int getAccidents() { return accidents; }
-    public void setAccidents(int accidents) { this.accidents = accidents; }
+    public void setPeriod(String period) {
+        this.period = period;
+    }
+
+    public double getAvgDensity() {
+        return avgDensity;
+    }
+
+    public void setAvgDensity(double avgDensity) {
+        this.avgDensity = avgDensity;
+    }
+
+    public double getAvgSpeed() {
+        return avgSpeed;
+    }
+
+    public void setAvgSpeed(double avgSpeed) {
+        this.avgSpeed = avgSpeed;
+    }
+
+    public int getAccidents() {
+        return accidents;
+    }
+
+    public void setAccidents(int accidents) {
+        this.accidents = accidents;
+    }
 }

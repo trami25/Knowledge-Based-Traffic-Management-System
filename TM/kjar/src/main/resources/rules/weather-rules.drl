@@ -9,5 +9,7 @@ when
             intensity == "medium" || intensity == "high")
 then
     insert(new TrafficAction("All", "extendGreen", 15));
-    insert(new Notification("Bad weather, extended green light on crossroads"));
+    Notification n = new Notification("Bad weather, extended green light on crossroads");
+    insert(n);
+    System.out.println(n);
 end
