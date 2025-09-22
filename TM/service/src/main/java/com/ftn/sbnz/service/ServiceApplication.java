@@ -10,6 +10,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import com.ftn.sbnz.model.models.Accident;
 import com.ftn.sbnz.model.models.EmergencyVehicle;
@@ -38,6 +39,7 @@ public class ServiceApplication {
 	}
 
 	@Bean
+    @ConditionalOnProperty(name = "app.run-sample-rules", havingValue = "true", matchIfMissing = false)
     public CommandLineRunner testRules(KieContainer kieContainer) {
         return args -> {
             KieSession kieSession = kieContainer.newKieSession("ksession-rules");

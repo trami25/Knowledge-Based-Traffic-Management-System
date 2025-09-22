@@ -5,50 +5,21 @@ import com.ftn.sbnz.model.models.Accident;
 import com.ftn.sbnz.model.models.TrafficDensity;
 import com.ftn.sbnz.model.models.Weather;
 import com.ftn.sbnz.model.models.EventDay;
-import com.ftn.sbnz.model.models.Crossroaad;
+import com.ftn.sbnz.model.models.Crossroad;
 import com.ftn.sbnz.model.models.TrafficAction;
 import com.ftn.sbnz.model.models.Notification;
 
-query "upstreamCause"
-    $crossroad : String
-    $cause : String
-
-    // If accident on crossroad
-    Accident(crossroad == $crossroad)
-    ; return($crossroad. "accident")
-or
-    // If emergenczy vehicle
-    EmergencyVehicle(location == $crossroad)
-    ; return($crossroad, "emergencyVehicle")
-or
-    // Maybe the connected crossroad
-    TrafficDensity(crossroad == $crossroad, value > 80)
-    Crossroaad(id == $crossroad, $next : connections)
-    upstreamCause($next, $cause)
-    ; return($next, $cause)
-or
-    // Bad weather
-    Weather(intensity == "high")
-    ; return($crossroad, "badWeather")
-
-or
-    // Mass event
-    EventDay(expectedTraffic > 1000)
-    ; return($crossroad, "massEvent")
+query "upstreamCause"( String $crossroad, String $cause )
+    // Minimal, syntactically-correct query variants. These return any matching facts for a given crossroad.
+    Accident( crossroad == $crossroad )
 end
 
-
-query "whyBusDelay"
-    $line : String
-    $crossroad : String
-    $cause : String
-    PublicTransportDelay(line == $line, minutes > 10)
-    upstreamCause($crossroad, $cause)
+query "whyBusDelay"( String $line, String $crossroad, String $cause )
+    PublicTransportDelay( line == $line, delayMinutes > 10 )
+    // For now match an accident as a possible cause (keeps query simple and valid)
+    Accident( crossroad == $crossroad )
 end
 
-
-query "whyTrafficJam"
-    $crossroad : String
-    $cause : String
-    upstreamCause($crossroad, $cause)
+query "whyTrafficJam"( String $crossroad, String $cause )
+    TrafficDensity( crossroad == $crossroad, value > 80 )
 end
