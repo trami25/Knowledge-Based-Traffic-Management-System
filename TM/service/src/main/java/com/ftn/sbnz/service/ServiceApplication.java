@@ -1,28 +1,10 @@
 package com.ftn.sbnz.service;
-import java.util.Arrays;
-
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieScanner;
 import org.kie.api.runtime.KieContainer;
-import org.kie.api.runtime.KieSession;
-import org.kie.api.runtime.rule.QueryResults;
-import org.kie.api.runtime.rule.QueryResultsRow;
-import org.kie.api.runtime.rule.Variable;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
-
-import com.ftn.sbnz.model.models.Accident;
-import com.ftn.sbnz.model.models.Crossroad;
-import com.ftn.sbnz.model.models.EmergencyVehicle;
-import com.ftn.sbnz.model.models.EventDay;
-import com.ftn.sbnz.model.models.IllegalParking;
-import com.ftn.sbnz.model.models.PublicTransportDelay;
-import com.ftn.sbnz.model.models.TimeOfDay;
-import com.ftn.sbnz.model.models.TrafficDensity;
-import com.ftn.sbnz.model.models.Weather;
 
 @SpringBootApplication
 public class ServiceApplication {
@@ -40,7 +22,7 @@ public class ServiceApplication {
 		kScanner.start(1000);
 		return kContainer;
 	}
-
+/*
 	@Bean
 @ConditionalOnProperty(name = "app.run-sample-rules", havingValue = "true", matchIfMissing = false)
 public CommandLineRunner testRules(KieContainer kieContainer) {
@@ -96,5 +78,5 @@ public CommandLineRunner testRules(KieContainer kieContainer) {
     };
 }
 
-
+*/
 }

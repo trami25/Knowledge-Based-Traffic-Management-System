@@ -4,13 +4,13 @@ import com.ftn.sbnz.model.models.CauseFact
 import com.ftn.sbnz.model.models.PublicTransportDelay
 
 // Query to explain why a bus line is delayed
-query "whyBusDelay"( String $line, String $crossroad, String $cause )
+query "whyBusDelay"( String $line, String $crossroad )
     PublicTransportDelay( $l : line, delayMinutes > 10 )
-    CauseFact( $cross : crossroad, $c : cause )
+    $cf : CauseFact( crossroad == $crossroad )
     eval($l.equals($line))
 end
 
 // Query to explain why there is a traffic jam at a crossroad
-query "whyTrafficJam"( String $crossroad, String $cause )
-    CauseFact( $cross : crossroad, $c : cause )
+query "whyTrafficJam"( String $crossroad )
+    $cf : CauseFact( crossroad == $crossroad )
 end
