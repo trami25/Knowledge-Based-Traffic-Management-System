@@ -1,25 +1,16 @@
 package rules
-import com.ftn.sbnz.model.models.EmergencyVehicle;
-import com.ftn.sbnz.model.models.PublicTransportDelay;
-import com.ftn.sbnz.model.models.Accident;
-import com.ftn.sbnz.model.models.TrafficDensity;
-import com.ftn.sbnz.model.models.Weather;
-import com.ftn.sbnz.model.models.EventDay;
-import com.ftn.sbnz.model.models.Crossroad;
-import com.ftn.sbnz.model.models.TrafficAction;
-import com.ftn.sbnz.model.models.Notification;
 
-query "upstreamCause"( String $crossroad, String $cause )
-    // Minimal, syntactically-correct query variants. These return any matching facts for a given crossroad.
-    Accident( crossroad == $crossroad )
-end
+import com.ftn.sbnz.model.models.CauseFact
+import com.ftn.sbnz.model.models.PublicTransportDelay
 
+// Query to explain why a bus line is delayed
 query "whyBusDelay"( String $line, String $crossroad, String $cause )
-    PublicTransportDelay( line == $line, delayMinutes > 10 )
-    // For now match an accident as a possible cause (keeps query simple and valid)
-    Accident( crossroad == $crossroad )
+    PublicTransportDelay( $l : line, delayMinutes > 10 )
+    CauseFact( $cross : crossroad, $c : cause )
+    eval($l.equals($line))
 end
 
+// Query to explain why there is a traffic jam at a crossroad
 query "whyTrafficJam"( String $crossroad, String $cause )
-    TrafficDensity( crossroad == $crossroad, value > 80 )
+    CauseFact( $cross : crossroad, $c : cause )
 end
