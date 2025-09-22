@@ -1,0 +1,50 @@
+package rules;
+
+import com.ftn.sbnz.model.models.CauseFact;
+import com.ftn.sbnz.model.models.Accident;
+import com.ftn.sbnz.model.models.EmergencyVehicle;
+import com.ftn.sbnz.model.models.TrafficDensity;
+import com.ftn.sbnz.model.models.EventDay;
+import com.ftn.sbnz.model.models.Crossroad;
+
+// Create CauseFact for direct causes
+rule "Cause from Accident"
+when
+    $a : Accident( $cr : crossroad )
+then
+    insert(new CauseFact($cr, "accident"));
+end
+
+rule "Cause from EmergencyVehicle"
+when
+    $e : EmergencyVehicle( $loc : location )
+then
+    insert(new CauseFact($loc, "emergencyVehicle"));
+end
+
+rule "Cause from TrafficDensity"
+when
+    $t : TrafficDensity( $cr : crossroad, value > 80 )
+then
+    insert(new CauseFact($cr, "trafficDensity"));
+end
+
+rule "Cause from EventDay"
+when
+    EventDay( expectedTraffic > 1000 )
+then
+    // This is a general event; we don't know which crossroad, so don't insert a CauseFact here.
+    // You can add domain-specific mapping from events to crossroads if you have that data.
+end
+
+// Propagate CauseFact from connected crossroads to upstream crossroads
+rule "Propagate Cause upstream"
+when
+    $nextCause : CauseFact( $nextCr : crossroad, $cause : cause )
+    $cr : Crossroad( $id : id, $connections : connectedRoads )
+    // check that one of the connections equals the nextCr
+    String( this == $nextCr ) from $connections
+then
+    // Insert a cause for the current crossroad (if not already present)
+    insert(new CauseFact($id, $cause));
+end
