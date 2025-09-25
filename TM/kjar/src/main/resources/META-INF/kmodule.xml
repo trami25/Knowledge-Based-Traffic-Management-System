@@ -1,7 +1,10 @@
 <kmodule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xmlns="http://jboss.org/kie/6.0.0/kmodule">
-
     <kbase name="rules" packages="rules" eventProcessingMode="stream">
-    <ksession name="ksession-rules"/>
+        <ruleTemplate
+            dtable="rules/template-data.xls"
+            template="rules/green-light-template.drt"
+            row="3" col="2" />
+        <ksession name="ksession-rules"/>
     </kbase>
 </kmodule>

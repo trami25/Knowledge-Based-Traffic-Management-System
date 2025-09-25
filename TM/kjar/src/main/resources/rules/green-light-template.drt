@@ -1,0 +1,25 @@
+template header
+hour
+greenDuration
+period
+
+package rules;
+import com.ftn.sbnz.model.models.TrafficDensity;
+import com.ftn.sbnz.model.models.TrafficAction;
+import com.ftn.sbnz.model.models.Notification;
+import com.ftn.sbnz.model.models.TimeOfDay;
+
+template "green-light-adjustment"
+
+rule "Green light adjustment - @{period}"
+when
+    $t : TrafficDensity($c : crossroad, value > 30)
+    TimeOfDay(hour == @{hour})
+then
+    insert(new TrafficAction($c, "adjustGreenLight", @{greenDuration}));
+    Notification n = new Notification("@{period}: Green light adjusted to @{greenDuration} seconds on " + $c);
+    insert(n);
+    System.out.println(n);
+end
+
+end template
