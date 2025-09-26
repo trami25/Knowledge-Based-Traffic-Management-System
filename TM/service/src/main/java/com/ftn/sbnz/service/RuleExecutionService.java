@@ -2,6 +2,7 @@ package com.ftn.sbnz.service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -13,6 +14,7 @@ import org.kie.api.runtime.rule.Variable;
 import org.springframework.stereotype.Service;
 
 import com.ftn.sbnz.model.models.Accident;
+import com.ftn.sbnz.model.models.CauseFact;
 import com.ftn.sbnz.model.models.Crossroad;
 import com.ftn.sbnz.model.models.EmergencyVehicle;
 import com.ftn.sbnz.model.models.EventDay;
@@ -37,67 +39,80 @@ public class RuleExecutionService {
     public List<QueryResultDto> execute(ExecuteRequest req) {
         KieSession kieSession = kieContainer.newKieSession("ksession-rules");
         try {
+            // Insert incoming facts
             if (req.getFacts() != null) {
                 for (FactDto f : req.getFacts()) {
                     Object obj = mapFact(f.getType(), f.getPayload());
                     if (obj != null) kieSession.insert(obj);
                 }
             }
+
+            // Initialize global set for tracking visited crossroads
+            kieSession.setGlobal("visitedCrossroads", new HashSet<String>());
+           
             kieSession.fireAllRules();
 
-            // return type change: List<QueryResultDto>
             List<QueryResultDto> out = new ArrayList<>();
+
             if (req.getQueries() != null) {
                 for (var q : req.getQueries()) {
                     Object[] params = q.getParams() == null ? new Object[0] : q.getParams().toArray();
                     QueryResults results;
+
                     try {
                         results = kieSession.getQueryResults(q.getName(), params);
                     } catch (RuntimeException ex) {
-                        // Some queries expect an extra return variable (Variable.v). Retry with it.
                         if (ex.getMessage() != null && ex.getMessage().contains("wrong number of arguments")) {
                             Object[] paramsWithVar = Arrays.copyOf(params, params.length + 1);
                             paramsWithVar[params.length] = Variable.v;
                             results = kieSession.getQueryResults(q.getName(), paramsWithVar);
-                        } else throw ex;
-                    }
-                    for (QueryResultsRow row : results) {
-                        Object cfObj = null;
-                        try {
-                            cfObj = row.get("$cf");
-                        } catch (IllegalArgumentException iae) {
-                            // $cf not bound in this query row
-                            cfObj = null;
-                        }
-                        if (cfObj != null && cfObj instanceof com.ftn.sbnz.model.models.CauseFact) {
-                            com.ftn.sbnz.model.models.CauseFact cf = (com.ftn.sbnz.model.models.CauseFact) cfObj;
-                            out.add(new QueryResultDto(q.getName(), cf.getCrossroad(), cf.getCause()));
                         } else {
-                            // fallback if query doesn't bind $cf — try to read $crossroad/$cause safely
-                            Object cr = null;
-                            Object cause = null;
-                            try {
-                                cr = row.get("$crossroad");
-                            } catch (IllegalArgumentException e2) {
-                                cr = null;
+                            throw ex;
+                        }
+                    }
+
+                    for (QueryResultsRow row : results) {
+                        String crossroad = null;
+                        String cause = null;
+
+                        if (q.getName().equals("findCauseOfDensity")) {
+                            crossroad = (String) q.getParams().get(0); // target parameter
+                            cause = (String) row.get("result");        // result parameter
+                            System.out.println("Found cause at " + crossroad + ": " + cause);
+                        } else {
+                            Object cfObj = row.get("$cf");
+                            if (cfObj instanceof CauseFact cf) {
+                                crossroad = cf.getCrossroad();
+                                cause = cf.getCause();
+                                System.out.println("Found cause at " + crossroad + ": " + cause);
                             }
-                            try {
-                                cause = row.get("$cause");
-                            } catch (IllegalArgumentException e3) {
-                                cause = null;
+                        }
+
+                        if (crossroad != null && cause != null) {
+                            QueryResultDto resultDto = new QueryResultDto(q.getName(), crossroad, cause);
+                            out.add(resultDto);
+                            
+                            // Print detailed result
+                            if (q.getName().equals("findCauseOfDensity")) {
+                                System.out.println("Query result: " + resultDto);
                             }
-                            out.add(new QueryResultDto(q.getName(),
-                                    cr == null ? null : String.valueOf(cr),
-                                    cause == null ? null : String.valueOf(cause)));
                         }
                     }
                 }
+            }            // Print all results before returning
+            if (!out.isEmpty()) {
+                System.out.println("\nAll query results:");
+                for (QueryResultDto result : out) {
+                    System.out.println(result);
+                }
             }
+
             return out;
         } finally {
             kieSession.dispose();
         }
     }
+
 
     private Object mapFact(String type, Map<String, Object> payload) {
         if (type == null) return null;

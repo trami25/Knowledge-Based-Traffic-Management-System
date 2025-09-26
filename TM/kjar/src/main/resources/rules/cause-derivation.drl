@@ -42,9 +42,8 @@ rule "Propagate Cause upstream"
 when
     $nextCause : CauseFact( $nextCr : crossroad, $cause : cause )
     $cr : Crossroad( $id : id, $connections : connectedRoads )
-    // check that one of the connections equals the nextCr
     String( this == $nextCr ) from $connections
+    not CauseFact(crossroad == $id, cause == $cause)
 then
-    // Insert a cause for the current crossroad (if not already present)
     insert(new CauseFact($id, $cause));
 end

@@ -37,4 +37,10 @@ public class QueryResultDto {
         return this.query;
     }
 
+    @Override
+    public String toString() {
+        return String.format("Query '%s' found cause '%s' at crossroad '%s'", 
+            query, cause, crossroad);
+    }
+
 }
