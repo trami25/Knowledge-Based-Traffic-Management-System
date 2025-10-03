@@ -2,9 +2,9 @@
 xmlns="http://jboss.org/kie/6.0.0/kmodule">
     <kbase name="rules" packages="rules" eventProcessingMode="stream">
         <ruleTemplate
-            dtable="rules/template-data.xls"
+            dtable="rules/template-data.csv"
             template="rules/green-light-template.drt"
-            row="3" col="2" />
+            row="2" col="1" />
         <ksession name="ksession-rules"/>
     </kbase>
 </kmodule>
