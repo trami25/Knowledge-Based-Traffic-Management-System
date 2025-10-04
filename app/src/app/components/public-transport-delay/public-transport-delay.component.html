@@ -1,0 +1,26 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-column gap-3">
+  <div class="flex flex-column gap-2">
+    <label for="line">Transport Line</label>
+    <input
+      id="line"
+      pInputText
+      formControlName="line"
+      placeholder="e.g., Bus 42, Metro Line 1"
+    />
+  </div>
+
+  <div class="flex flex-column gap-2">
+    <label for="delayMinutes">Delay (minutes)</label>
+    <p-inputNumber
+      inputId="delayMinutes"
+      formControlName="delayMinutes"
+      [min]="0"
+      placeholder="Delay in minutes"
+    ></p-inputNumber>
+  </div>
+
+  <div class="flex gap-2">
+    <button pButton type="submit" label="Submit" [disabled]="!isValid"></button>
+    <button pButton type="button" (click)="onReset()" label="Reset" severity="secondary" outlined></button>
+  </div>
+</form>

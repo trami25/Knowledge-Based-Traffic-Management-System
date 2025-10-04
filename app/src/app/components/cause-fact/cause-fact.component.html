@@ -1,0 +1,26 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-column gap-3">
+  <div class="flex flex-column gap-2">
+    <label for="crossroad">Crossroad</label>
+    <input
+      id="crossroad"
+      pInputText
+      formControlName="crossroad"
+      placeholder="e.g., Main St & Oak Ave"
+    />
+  </div>
+
+  <div class="flex flex-column gap-2">
+    <label for="cause">Cause</label>
+    <input
+      id="cause"
+      pInputText
+      formControlName="cause"
+      placeholder="e.g., Heavy traffic, accident, construction"
+    />
+  </div>
+
+  <div class="flex gap-2">
+    <button pButton type="submit" label="Submit" [disabled]="!isValid"></button>
+    <button pButton type="button" (click)="onReset()" label="Reset" severity="secondary" outlined></button>
+  </div>
+</form>

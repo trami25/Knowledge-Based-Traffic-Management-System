@@ -43,7 +43,8 @@ public class RuleExecutionService {
             if (req.getFacts() != null) {
                 for (FactDto f : req.getFacts()) {
                     Object obj = mapFact(f.getType(), f.getPayload());
-                    if (obj != null) kieSession.insert(obj);
+                    if (obj != null)
+                        kieSession.insert(obj);
                 }
             }
 
@@ -108,6 +109,9 @@ public class RuleExecutionService {
             }
 
             return out;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return List.of();
         } finally {
             kieSession.dispose();
         }
@@ -115,18 +119,32 @@ public class RuleExecutionService {
 
 
     private Object mapFact(String type, Map<String, Object> payload) {
-        if (type == null) return null;
-        return switch (type) {
-            case "Accident" -> new Accident((String) payload.get("crossroad"), (String) payload.get("severity"));
-            case "Crossroad" -> new Crossroad((String) payload.get("id"), (java.util.List<String>) payload.get("connectedRoads"));
-            case "EmergencyVehicle" -> new EmergencyVehicle((String) payload.get("location"), (String) payload.get("direction"));
-            case "EventDay" -> new EventDay((String) payload.get("name"), ((Number) payload.get("expectedTraffic")).intValue());
-            case "IllegalParking" -> new IllegalParking((String) payload.get("crossroad"));
-            case "PublicTransportDelay" -> new PublicTransportDelay((String) payload.get("line"), ((Number) payload.get("delayMinutes")).intValue());
-            case "TimeOfDay" -> new TimeOfDay(((Number) payload.get("hour")).intValue());
-            case "TrafficDensity" -> new TrafficDensity((String) payload.get("crossroad"), ((Number) payload.get("value")).intValue());
-            case "Weather" -> new Weather((String) payload.get("type"), (String) payload.get("intensity"));
-            default -> null;
-        };
+        if (type == null)
+            return null;
+        switch (type) {
+            case "Accident":
+                return new Accident((String) payload.get("crossroad"), (String) payload.get("severity"));
+            case "Crossroad":
+                return new Crossroad((String) payload.get("id"),
+                        (java.util.List<String>) payload.get("connectedRoads"));
+            case "EmergencyVehicle":
+                return new EmergencyVehicle((String) payload.get("location"), (String) payload.get("direction"));
+            case "EventDay":
+                return new EventDay((String) payload.get("name"), ((Number) payload.get("expectedTraffic")).intValue());
+            case "IllegalParking":
+                return new IllegalParking((String) payload.get("crossroad"));
+            case "PublicTransportDelay":
+                return new PublicTransportDelay((String) payload.get("line"),
+                        ((Number) payload.get("delayMinutes")).intValue());
+            case "TimeOfDay":
+                return new TimeOfDay(((Number) payload.get("hour")).intValue());
+            case "TrafficDensity":
+                return new TrafficDensity((String) payload.get("crossroad"),
+                        ((Number) payload.get("value")).intValue());
+            case "Weather":
+                return new Weather((String) payload.get("type"), (String) payload.get("intensity"));
+            default:
+                return null;
+        }
     }
 }

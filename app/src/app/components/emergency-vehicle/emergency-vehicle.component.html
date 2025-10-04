@@ -1,0 +1,28 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-column gap-3">
+  <div class="flex flex-column gap-2">
+    <label for="location">Location</label>
+    <input
+      id="location"
+      pInputText
+      formControlName="location"
+      placeholder="e.g., Main St & Oak Ave"
+    />
+  </div>
+
+  <div class="flex flex-column gap-2">
+    <label for="direction">Direction</label>
+    <p-dropdown
+      inputId="direction"
+      [options]="directionOptions"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Select direction"
+      formControlName="direction"
+    ></p-dropdown>
+  </div>
+
+  <div class="flex gap-2">
+    <button pButton type="submit" label="Submit" [disabled]="!isValid"></button>
+    <button pButton type="button" (click)="onReset()" label="Reset" severity="secondary" outlined></button>
+  </div>
+</form>

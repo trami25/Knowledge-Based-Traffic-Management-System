@@ -1,0 +1,39 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-column gap-3">
+  <div class="flex flex-column gap-2">
+    <label for="crossroad">Crossroad</label>
+    <input
+      id="crossroad"
+      pInputText
+      formControlName="crossroad"
+      placeholder="e.g., Main St & Oak Ave"
+    />
+  </div>
+
+  <div class="flex flex-column gap-2">
+    <label for="speed">Speed (km/h)</label>
+    <p-inputNumber
+      inputId="speed"
+      formControlName="speed"
+      [min]="0"
+      [max]="200"
+      placeholder="Enter speed"
+    ></p-inputNumber>
+  </div>
+
+  <div class="flex flex-column gap-2">
+    <label for="type">Vehicle Type</label>
+    <p-dropdown
+      inputId="type"
+      [options]="typeOptions"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Select vehicle type"
+      formControlName="type"
+    ></p-dropdown>
+  </div>
+
+  <div class="flex gap-2">
+    <button pButton type="submit" label="Submit" [disabled]="!isValid"></button>
+    <button pButton type="button" (click)="onReset()" label="Reset" severity="secondary" outlined></button>
+  </div>
+</form>

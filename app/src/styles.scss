@@ -1,0 +1,84 @@
+/* PrimeNG supporting styles */
+@import 'primeicons/primeicons.css';
+@import 'primeflex/primeflex.css';
+
+/* You can add global styles to this file, and also import other style files */
+html, body {
+	font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+}
+
+pre, code, .font-mono {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* Dark mode styles */
+body {
+	transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body.dark {
+	background-color: #0f172a;
+	color: #f1f5f9;
+	
+	/* PrimeNG component overrides for dark mode */
+	.p-card {
+		background: #1e293b !important;
+		color: #f1f5f9 !important;
+		border-color: #334155 !important;
+	}
+	
+	.p-card .p-card-header {
+		background: #1e293b !important;
+		color: #f1f5f9 !important;
+		border-color: #334155 !important;
+	}
+	
+	.p-card .p-card-content {
+		background: #1e293b !important;
+		color: #f1f5f9 !important;
+	}
+	
+	.p-card .p-card-subtitle {
+		color: #cbd5e1 !important;
+	}
+	
+	/* Form inputs dark mode */
+	.p-inputtext, .p-inputnumber-input, .p-dropdown, .p-calendar input {
+		background: #334155 !important;
+		color: #f1f5f9 !important;
+		border-color: #475569 !important;
+	}
+	
+	.p-dropdown-panel {
+		background: #334155 !important;
+		color: #f1f5f9 !important;
+		border-color: #475569 !important;
+	}
+	
+	.p-dropdown-item {
+		color: #f1f5f9 !important;
+	}
+	
+	.p-dropdown-item:hover {
+		background: #475569 !important;
+	}
+	
+	/* Textarea */
+	textarea.p-inputtextarea {
+		background: #334155 !important;
+		color: #f1f5f9 !important;
+		border-color: #475569 !important;
+	}
+	
+	/* Labels and text */
+	label {
+		color: #f1f5f9 !important;
+	}
+	
+	/* Pre and code blocks */
+	pre {
+		background: #334155 !important;
+		color: #f1f5f9 !important;
+		border: 1px solid #475569 !important;
+	}
+}

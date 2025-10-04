@@ -1,0 +1,177 @@
+<div class="p-4">
+  <div class="topbar">
+    <h1 class="m-0">Traffic UI</h1>
+    <p-toggleButton
+      [onIcon]="'pi pi-moon'"
+      [offIcon]="'pi pi-sun'"
+      [onLabel]="'Dark'"
+      [offLabel]="'Light'"
+      [(ngModel)]="darkModeToggle"
+      (onChange)="toggleDarkMode()"
+    ></p-toggleButton>
+  </div>
+  <div class="layout-cols">
+    <div class="left-pane">
+      <p-card header="Model Input" subheader="Select a model and provide inputs">
+        <!-- Model Instances Display -->
+        @if (modelInstances().length > 0) {
+          <div class="instances-container mb-4">
+            <div class="instances-header flex justify-content-between align-items-center mb-3">
+              <h3 class="text-lg font-semibold m-0">Model Instances ({{ modelInstances().length }})</h3>
+              <div class="instances-actions flex gap-2">
+                <p-button 
+                  label="Clear All" 
+                  icon="pi pi-trash" 
+                  severity="secondary" 
+                  size="small"
+                  (click)="clearAllInstances()"
+                ></p-button>
+                <p-button 
+                  label="Submit All" 
+                  icon="pi pi-check" 
+                  severity="success" 
+                  size="small"
+                  (click)="submitAllInstances()"
+                ></p-button>
+              </div>
+            </div>
+            <div class="instances-list flex flex-column gap-2">
+              @for (instance of modelInstances(); track instance.id) {
+                <div class="instance-card p-3 border-1 border-300 border-round">
+                  <div class="instance-header flex justify-content-between align-items-center mb-2">
+                    <h4 class="text-base font-medium m-0">{{ instance.type | titlecase }}</h4>
+                    <p-button 
+                      icon="pi pi-times" 
+                      severity="danger" 
+                      size="small" 
+                      [text]="true"
+                      (click)="removeModelInstance(instance.id)"
+                    ></p-button>
+                  </div>
+                  <div class="instance-data">
+                    <pre class="text-xs bg-gray-100 p-2 border-round overflow-auto max-h-6rem">{{ instance.data | json }}</pre>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+        
+        <div class="flex flex-column gap-3" [formGroup]="form">
+          <div class="flex flex-column gap-2">
+            <label for="model">Model</label>
+            <p-dropdown
+              inputId="model"
+              [options]="modelOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Select model"
+              formControlName="model"
+            ></p-dropdown>
+          </div>
+
+          <!-- Dynamic Components -->
+          <ng-container [ngSwitch]="form.value.model">
+            <app-accident
+              *ngSwitchCase="'accident'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-accident>
+            
+            <app-vehicle
+              *ngSwitchCase="'vehicle'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-vehicle>
+            
+            <app-weather
+              *ngSwitchCase="'weather'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-weather>
+            
+            <app-traffic-density
+              *ngSwitchCase="'trafficDensity'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-traffic-density>
+            
+            <app-emergency-vehicle
+              *ngSwitchCase="'emergencyVehicle'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-emergency-vehicle>
+            
+            <app-cause-fact
+              *ngSwitchCase="'causeFact'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-cause-fact>
+            
+            <app-time-of-day
+              *ngSwitchCase="'timeOfDay'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-time-of-day>
+            
+            <app-crossroad
+              *ngSwitchCase="'crossroad'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-crossroad>
+            
+            <app-event-day
+              *ngSwitchCase="'eventDay'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-event-day>
+            
+            <app-illegal-parking
+              *ngSwitchCase="'illegalParking'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-illegal-parking>
+            
+            <app-pedestrian-detected
+              *ngSwitchCase="'pedestrianDetected'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-pedestrian-detected>
+            
+            <app-public-transport-delay
+              *ngSwitchCase="'publicTransportDelay'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-public-transport-delay>
+            
+            <div *ngSwitchDefault class="p-3 text-center text-color-secondary">
+              Please select a model to see the input form.
+            </div>
+          </ng-container>
+        </div>
+      </p-card>
+    </div>
+
+    <div class="right-pane">
+      <p-card header="Output Log" subheader="Recent responses (newest first)">
+        <div class="log-scroll">
+          <ng-container *ngIf="logs()?.length; else empty">
+            <div class="log-entry" *ngFor="let e of logs()">
+              <div class="log-meta">
+                <span class="pi pi-clock mr-2"></span>
+                <strong>{{ e.timestamp }}</strong>
+                <span class="ml-2">•</span>
+                <span class="ml-2">{{ e.model }}</span>
+              </div>
+              <pre class="m-0">{{ e | json }}</pre>
+              <p-divider></p-divider>
+            </div>
+          </ng-container>
+          <ng-template #empty>
+            <div class="text-color-secondary">No entries yet. Submit the form to see results here.</div>
+          </ng-template>
+        </div>
+      </p-card>
+    </div>
+  </div>
+</div>
