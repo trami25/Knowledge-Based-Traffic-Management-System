@@ -1,0 +1,17 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-column gap-3">
+  <div class="flex flex-column gap-2">
+    <label for="hour">Hour (0-23)</label>
+    <p-inputNumber
+      inputId="hour"
+      formControlName="hour"
+      [min]="0"
+      [max]="23"
+      placeholder="Enter hour (0-23)"
+    ></p-inputNumber>
+  </div>
+
+  <div class="flex gap-2">
+    <button pButton type="submit" label="Submit" [disabled]="!isValid"></button>
+    <button pButton type="button" (click)="onReset()" label="Reset" severity="secondary" outlined></button>
+  </div>
+</form>

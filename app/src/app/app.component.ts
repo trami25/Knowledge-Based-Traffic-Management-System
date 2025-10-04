@@ -1,5 +1,6 @@
 import { Component, computed, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import {
   ReactiveFormsModule,
   FormsModule,
@@ -9,16 +10,9 @@ import {
 } from '@angular/forms';
 import { DropdownModule } from 'primeng/dropdown';
 import { ToggleButtonModule } from 'primeng/togglebutton';
-import { InputTextModule } from 'primeng/inputtext';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { CalendarModule } from 'primeng/calendar';
-import { TextareaModule } from 'primeng/textarea';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DividerModule } from 'primeng/divider';
-import { PanelModule } from 'primeng/panel';
-import { TagModule } from 'primeng/tag';
-import { ChipModule } from 'primeng/chip';
 import {
   JsonPipe,
   NgFor,
@@ -28,6 +22,15 @@ import {
   NgSwitchDefault,
 } from '@angular/common';
 
+// Import new dynamic components
+import { AccidentComponent } from './components/accident.component';
+import { VehicleComponent } from './components/vehicle.component';
+import { WeatherComponent } from './components/weather.component';
+import { TrafficDensityComponent } from './components/traffic-density.component';
+import { EmergencyVehicleComponent } from './components/emergency-vehicle.component';
+import { CauseFactComponent } from './components/cause-fact.component';
+import { TimeOfDayComponent } from './components/time-of-day.component';
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -36,32 +39,37 @@ import {
     ReactiveFormsModule,
     FormsModule,
     DropdownModule,
-    InputTextModule,
-    InputNumberModule,
-    CalendarModule,
-    TextareaModule,
     ToggleButtonModule,
     ButtonModule,
     CardModule,
     DividerModule,
-    PanelModule,
-    TagModule,
-    ChipModule,
     NgFor,
     NgIf,
     NgSwitch,
     NgSwitchCase,
     NgSwitchDefault,
     JsonPipe,
+    // Dynamic form components
+    AccidentComponent,
+    VehicleComponent,
+    WeatherComponent,
+    TrafficDensityComponent,
+    EmergencyVehicleComponent,
+    CauseFactComponent,
+    TimeOfDayComponent,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
 export class AppComponent {
   modelOptions = [
-    { label: 'Traffic Flow', value: 'trafficFlow' },
-    { label: 'Weather Impact', value: 'weatherImpact' },
-    { label: 'Incident Prediction', value: 'incidentPrediction' },
+    { label: 'Accident', value: 'accident' },
+    { label: 'Vehicle', value: 'vehicle' },
+    { label: 'Weather', value: 'weather' },
+    { label: 'Traffic Density', value: 'trafficDensity' },
+    { label: 'Emergency Vehicle', value: 'emergencyVehicle' },
+    { label: 'Cause Fact', value: 'causeFact' },
+    { label: 'Time of Day', value: 'timeOfDay' },
   ];
 
   form: FormGroup;
@@ -69,26 +77,9 @@ export class AppComponent {
   logs = computed(() => this._logs());
   darkModeToggle = false;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private http: HttpClient) {
     this.form = this.fb.group({
       model: [null, Validators.required],
-      // trafficFlow
-      roadSegment: [''],
-      vehiclesPerHour: [null],
-      avgSpeed: [null],
-      // weatherImpact
-      dateTime: [null],
-      conditions: [''],
-      temperature: [null],
-      // incidentPrediction
-      description: [''],
-      numCameras: [null],
-      numSensors: [null],
-    });
-
-    // Update validators when model changes
-    this.form.get('model')!.valueChanges.subscribe((model: string) => {
-      this.applyModelValidators(model);
     });
 
     // Initialize dark mode from persisted preference
@@ -105,88 +96,84 @@ export class AppComponent {
     }
   }
 
-  private applyModelValidators(model: string) {
-    const setReq = (name: string, required: boolean) => {
-      const ctrl = this.form.get(name);
-      if (!ctrl) return;
-      ctrl.setValidators(required ? [Validators.required] : []);
-      ctrl.updateValueAndValidity({ emitEvent: false });
-    };
-
-    // reset all to optional
-    [
-      'roadSegment',
-      'vehiclesPerHour',
-      'avgSpeed',
-      'dateTime',
-      'conditions',
-      'temperature',
-      'description',
-      'numCameras',
-      'numSensors',
-    ].forEach((n) => setReq(n, false));
-
-    switch (model) {
-      case 'trafficFlow':
-        setReq('roadSegment', true);
-        setReq('vehiclesPerHour', true);
-        setReq('avgSpeed', true);
-        break;
-      case 'weatherImpact':
-        setReq('dateTime', true);
-        setReq('conditions', true);
-        setReq('temperature', true);
-        break;
-      case 'incidentPrediction':
-        setReq('description', true);
-        setReq('numCameras', true);
-        setReq('numSensors', true);
-        break;
-    }
-  }
-
-  onSubmit() {
-    if (this.form.invalid) return;
+  onDynamicFormSubmit(formData: any) {
     const model = this.form.value.model;
-    const payload = this.buildPayload(model);
-    // Simulate API call
-    const entry = {
-      timestamp: new Date().toISOString(),
-      model,
-      payload,
-      result: `Processed ${model} successfully`,
+    this.onSubmit(model, formData);
+  }
+
+  onSubmit(modelType: string, formData: any) {
+    // Format the data according to the API specification
+    const apiPayload = {
+      facts: [
+        {
+          type: this.getJavaClassName(modelType),
+          payload: formData,
+        },
+      ],
+      queries: [],
     };
-    this._logs.update((arr) => [entry, ...arr]);
+
+    // Make HTTP POST request to the backend
+    this.http
+      .post('http://localhost:8080/api/rules/execute', apiPayload, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      .subscribe({
+        next: (response: any) => {
+          // Log successful response
+          const entry = {
+            timestamp: new Date().toISOString(),
+            model: modelType,
+            payload: formData,
+            response: response,
+            result: `Successfully processed ${modelType}`,
+            status: 'success',
+          };
+          this._logs.update((arr) => [entry, ...arr]);
+        },
+        error: (error: any) => {
+          // Log error response
+          const entry = {
+            timestamp: new Date().toISOString(),
+            model: modelType,
+            payload: formData,
+            error: error.message || 'Unknown error',
+            result: `Failed to process ${modelType}`,
+            status: 'error',
+          };
+          this._logs.update((arr) => [entry, ...arr]);
+          console.error('API Error:', error);
+        },
+      });
   }
 
-  reset() {
+  private getJavaClassName(modelType: string): string {
+    // Map Angular component names to Java class names
+    const classNameMap: { [key: string]: string } = {
+      accident: 'Accident',
+      vehicle: 'Vehicle',
+      weather: 'Weather',
+      trafficDensity: 'TrafficDensity',
+      emergencyVehicle: 'EmergencyVehicle',
+      causeFact: 'CauseFact',
+      timeOfDay: 'TimeOfDay',
+      crossroad: 'Crossroad',
+      eventDay: 'EventDay',
+      illegalParking: 'IllegalParking',
+      notification: 'Notification',
+      pedestrianDetected: 'PedestrianDetected',
+      publicTransportDelay: 'PublicTransportDelay',
+      trafficAction: 'TrafficAction',
+    };
+
+    return classNameMap[modelType] || modelType;
+  }
+
+  onDynamicFormReset() {
+    // Reset the main form model selection
     this.form.reset();
-  }
-
-  private buildPayload(model: string) {
-    const v = this.form.value as any;
-    switch (model) {
-      case 'trafficFlow':
-        return {
-          roadSegment: v.roadSegment,
-          vehiclesPerHour: v.vehiclesPerHour,
-          avgSpeed: v.avgSpeed,
-        };
-      case 'weatherImpact':
-        return {
-          dateTime: v.dateTime,
-          conditions: v.conditions,
-          temperature: v.temperature,
-        };
-      case 'incidentPrediction':
-        return {
-          description: v.description,
-          numCameras: v.numCameras,
-          numSensors: v.numSensors,
-        };
-      default:
-        return {};
-    }
   }
 
   darkMode(): boolean {

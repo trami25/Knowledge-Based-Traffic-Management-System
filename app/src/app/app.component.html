@@ -13,7 +13,7 @@
   <div class="layout-cols">
     <div class="left-pane">
       <p-card header="Model Input" subheader="Select a model and provide inputs">
-        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-column gap-3">
+        <div class="flex flex-column gap-3" [formGroup]="form">
           <div class="flex flex-column gap-2">
             <label for="model">Model</label>
             <p-dropdown
@@ -26,71 +26,55 @@
             ></p-dropdown>
           </div>
 
-          <!-- Dynamic fields -->
+          <!-- Dynamic Components -->
           <ng-container [ngSwitch]="form.value.model">
-            <!-- Traffic Flow Model -->
-            <ng-container *ngSwitchCase="'trafficFlow'">
-              <div class="flex flex-column gap-2">
-                <label for="road">Road Segment</label>
-                <input
-                  id="road"
-                  pInputText
-                  formControlName="roadSegment"
-                  placeholder="e.g., A1-Exit-5 to Exit-6"
-                />
-              </div>
-              <div class="flex gap-3">
-                <div class="flex flex-column gap-2 w-6">
-                  <label for="vehicles">Vehicles/hour</label>
-                  <p-inputNumber inputId="vehicles" formControlName="vehiclesPerHour" [min]="0"></p-inputNumber>
-                </div>
-                <div class="flex flex-column gap-2 w-6">
-                  <label for="speed">Avg Speed (km/h)</label>
-                  <p-inputNumber inputId="speed" formControlName="avgSpeed" [min]="0" [max]="200"></p-inputNumber>
-                </div>
-              </div>
-            </ng-container>
-
-            <!-- Weather Impact Model -->
-            <ng-container *ngSwitchCase="'weatherImpact'">
-              <div class="flex flex-column gap-2">
-                <label for="date">Date/Time</label>
-                <p-calendar inputId="date" formControlName="dateTime" [showTime]="true" hourFormat="24"></p-calendar>
-              </div>
-              <div class="flex flex-column gap-2">
-                <label for="conditions">Conditions</label>
-                <input id="conditions" pInputText formControlName="conditions" placeholder="e.g., rain, fog" />
-              </div>
-              <div class="flex flex-column gap-2">
-                <label for="temp">Temperature (°C)</label>
-                <p-inputNumber inputId="temp" formControlName="temperature" [min]="-40" [max]="60"></p-inputNumber>
-              </div>
-            </ng-container>
-
-            <!-- Incident Prediction Model -->
-            <ng-container *ngSwitchCase="'incidentPrediction'">
-              <div class="flex flex-column gap-2">
-                <label for="desc">Description</label>
-                <textarea id="desc" pTextarea rows="4" formControlName="description" placeholder="Brief area/context"></textarea>
-              </div>
-              <div class="flex gap-3">
-                <div class="flex flex-column gap-2 w-6">
-                  <label for="cameras">Num Cameras</label>
-                  <p-inputNumber inputId="cameras" formControlName="numCameras" [min]="0"></p-inputNumber>
-                </div>
-                <div class="flex flex-column gap-2 w-6">
-                  <label for="sensors">Num Sensors</label>
-                  <p-inputNumber inputId="sensors" formControlName="numSensors" [min]="0"></p-inputNumber>
-                </div>
-              </div>
-            </ng-container>
+            <app-accident
+              *ngSwitchCase="'accident'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-accident>
+            
+            <app-vehicle
+              *ngSwitchCase="'vehicle'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-vehicle>
+            
+            <app-weather
+              *ngSwitchCase="'weather'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-weather>
+            
+            <app-traffic-density
+              *ngSwitchCase="'trafficDensity'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-traffic-density>
+            
+            <app-emergency-vehicle
+              *ngSwitchCase="'emergencyVehicle'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-emergency-vehicle>
+            
+            <app-cause-fact
+              *ngSwitchCase="'causeFact'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-cause-fact>
+            
+            <app-time-of-day
+              *ngSwitchCase="'timeOfDay'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-time-of-day>
+            
+            <div *ngSwitchDefault class="p-3 text-center text-color-secondary">
+              Please select a model to see the input form.
+            </div>
           </ng-container>
-
-          <div class="flex gap-2">
-            <button pButton type="submit" label="Submit" [disabled]="form.invalid"></button>
-            <button pButton type="button" (click)="reset()" label="Reset" severity="secondary" outlined></button>
-          </div>
-        </form>
+        </div>
       </p-card>
     </div>
 
