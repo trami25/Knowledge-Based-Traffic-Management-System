@@ -24,14 +24,13 @@ export class WeatherComponent {
   form: FormGroup;
 
   typeOptions = [
-    { label: 'Sunny', value: 'sunny' },
-    { label: 'Rainy', value: 'rainy' },
-    { label: 'Snowy', value: 'snowy' },
+    { label: 'Rain', value: 'rain' },
+    { label: 'Snow', value: 'snow' },
   ];
 
   intensityOptions = [
-    { label: 'Light', value: 'light' },
-    { label: 'Moderate', value: 'moderate' },
+    { label: 'Medium', value: 'medium' },
+    { label: 'High', value: 'high' },
     { label: 'Heavy', value: 'heavy' },
   ];
 

@@ -31,9 +31,9 @@ export class AccidentComponent {
   form: FormGroup;
 
   severityOptions = [
-    { label: 'Minor', value: 'minor' },
-    { label: 'Major', value: 'major' },
-    { label: 'Fatal', value: 'fatal' },
+    { label: 'Low', value: 'low' },
+    { label: 'Medium', value: 'medium' },
+    { label: 'High', value: 'high' },
   ];
 
   constructor(private fb: FormBuilder) {
