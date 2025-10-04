@@ -1,0 +1,28 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-column gap-3">
+  <div class="flex flex-column gap-2">
+    <label for="eventType">Event Type</label>
+    <p-dropdown
+      inputId="eventType"
+      [options]="eventTypeOptions"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Select event type"
+      formControlName="eventType"
+    ></p-dropdown>
+  </div>
+
+  <div class="flex flex-column gap-2">
+    <label for="expectedTraffic">Expected Traffic (vehicles)</label>
+    <p-inputNumber
+      inputId="expectedTraffic"
+      formControlName="expectedTraffic"
+      [min]="0"
+      placeholder="Enter expected number of vehicles"
+    ></p-inputNumber>
+  </div>
+
+  <div class="flex gap-2">
+    <button pButton type="submit" label="Submit" [disabled]="!isValid"></button>
+    <button pButton type="button" (click)="onReset()" label="Reset" severity="secondary" outlined></button>
+  </div>
+</form>

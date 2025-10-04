@@ -1,0 +1,30 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-column gap-3">
+  <div class="flex flex-column gap-2">
+    <label for="type">Weather Type</label>
+    <p-dropdown
+      inputId="type"
+      [options]="typeOptions"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Select weather type"
+      formControlName="type"
+    ></p-dropdown>
+  </div>
+
+  <div class="flex flex-column gap-2">
+    <label for="intensity">Intensity</label>
+    <p-dropdown
+      inputId="intensity"
+      [options]="intensityOptions"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Select intensity"
+      formControlName="intensity"
+    ></p-dropdown>
+  </div>
+
+  <div class="flex gap-2">
+    <button pButton type="submit" label="Submit" [disabled]="!isValid"></button>
+    <button pButton type="button" (click)="onReset()" label="Reset" severity="secondary" outlined></button>
+  </div>
+</form>

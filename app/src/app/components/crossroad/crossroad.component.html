@@ -1,0 +1,50 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-column gap-3">
+  <div class="flex flex-column gap-2">
+    <label for="id">Crossroad ID</label>
+    <input
+      id="id"
+      pInputText
+      formControlName="id"
+      placeholder="e.g., Main_St_Oak_Ave"
+    />
+  </div>
+
+  <div class="flex flex-column gap-2">
+    <label>Connected Roads</label>
+    <div formArrayName="connectedRoads" class="flex flex-column gap-2">
+      <div *ngFor="let road of connectedRoads.controls; let i = index" class="flex gap-2 align-items-center">
+        <input
+          pInputText
+          [formControlName]="i"
+          [placeholder]="'Road ' + (i + 1)"
+          class="flex-1"
+        />
+        <button
+          pButton
+          type="button"
+          icon="pi pi-trash"
+          severity="danger"
+          size="small"
+          outlined
+          (click)="removeRoad(i)"
+          [disabled]="connectedRoads.length <= 1"
+        ></button>
+      </div>
+    </div>
+    <button
+      pButton
+      type="button"
+      label="Add Road"
+      icon="pi pi-plus"
+      severity="secondary"
+      outlined
+      size="small"
+      (click)="addRoad()"
+    ></button>
+  </div>
+
+  <div class="flex gap-2">
+    <button pButton type="submit" label="Submit" [disabled]="!isValid"></button>
+    <button pButton type="button" (click)="onReset()" label="Reset" severity="secondary" outlined></button>
+  </div>
+</form>
