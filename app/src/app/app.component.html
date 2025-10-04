@@ -1,1 +1,119 @@
-<p-button label="Check" />
+<div class="p-4">
+  <div class="topbar">
+    <h1 class="m-0">Traffic UI</h1>
+    <p-toggleButton
+      [onIcon]="'pi pi-moon'"
+      [offIcon]="'pi pi-sun'"
+      [onLabel]="'Dark'"
+      [offLabel]="'Light'"
+      [(ngModel)]="darkModeToggle"
+      (onChange)="toggleDarkMode()"
+    ></p-toggleButton>
+  </div>
+  <div class="layout-cols">
+    <div class="left-pane">
+      <p-card header="Model Input" subheader="Select a model and provide inputs">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-column gap-3">
+          <div class="flex flex-column gap-2">
+            <label for="model">Model</label>
+            <p-dropdown
+              inputId="model"
+              [options]="modelOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Select model"
+              formControlName="model"
+            ></p-dropdown>
+          </div>
+
+          <!-- Dynamic fields -->
+          <ng-container [ngSwitch]="form.value.model">
+            <!-- Traffic Flow Model -->
+            <ng-container *ngSwitchCase="'trafficFlow'">
+              <div class="flex flex-column gap-2">
+                <label for="road">Road Segment</label>
+                <input
+                  id="road"
+                  pInputText
+                  formControlName="roadSegment"
+                  placeholder="e.g., A1-Exit-5 to Exit-6"
+                />
+              </div>
+              <div class="flex gap-3">
+                <div class="flex flex-column gap-2 w-6">
+                  <label for="vehicles">Vehicles/hour</label>
+                  <p-inputNumber inputId="vehicles" formControlName="vehiclesPerHour" [min]="0"></p-inputNumber>
+                </div>
+                <div class="flex flex-column gap-2 w-6">
+                  <label for="speed">Avg Speed (km/h)</label>
+                  <p-inputNumber inputId="speed" formControlName="avgSpeed" [min]="0" [max]="200"></p-inputNumber>
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- Weather Impact Model -->
+            <ng-container *ngSwitchCase="'weatherImpact'">
+              <div class="flex flex-column gap-2">
+                <label for="date">Date/Time</label>
+                <p-calendar inputId="date" formControlName="dateTime" [showTime]="true" hourFormat="24"></p-calendar>
+              </div>
+              <div class="flex flex-column gap-2">
+                <label for="conditions">Conditions</label>
+                <input id="conditions" pInputText formControlName="conditions" placeholder="e.g., rain, fog" />
+              </div>
+              <div class="flex flex-column gap-2">
+                <label for="temp">Temperature (°C)</label>
+                <p-inputNumber inputId="temp" formControlName="temperature" [min]="-40" [max]="60"></p-inputNumber>
+              </div>
+            </ng-container>
+
+            <!-- Incident Prediction Model -->
+            <ng-container *ngSwitchCase="'incidentPrediction'">
+              <div class="flex flex-column gap-2">
+                <label for="desc">Description</label>
+                <textarea id="desc" pTextarea rows="4" formControlName="description" placeholder="Brief area/context"></textarea>
+              </div>
+              <div class="flex gap-3">
+                <div class="flex flex-column gap-2 w-6">
+                  <label for="cameras">Num Cameras</label>
+                  <p-inputNumber inputId="cameras" formControlName="numCameras" [min]="0"></p-inputNumber>
+                </div>
+                <div class="flex flex-column gap-2 w-6">
+                  <label for="sensors">Num Sensors</label>
+                  <p-inputNumber inputId="sensors" formControlName="numSensors" [min]="0"></p-inputNumber>
+                </div>
+              </div>
+            </ng-container>
+          </ng-container>
+
+          <div class="flex gap-2">
+            <button pButton type="submit" label="Submit" [disabled]="form.invalid"></button>
+            <button pButton type="button" (click)="reset()" label="Reset" severity="secondary" outlined></button>
+          </div>
+        </form>
+      </p-card>
+    </div>
+
+    <div class="right-pane">
+      <p-card header="Output Log" subheader="Recent responses (newest first)">
+        <div class="log-scroll">
+          <ng-container *ngIf="logs()?.length; else empty">
+            <div class="log-entry" *ngFor="let e of logs()">
+              <div class="log-meta">
+                <span class="pi pi-clock mr-2"></span>
+                <strong>{{ e.timestamp }}</strong>
+                <span class="ml-2">•</span>
+                <span class="ml-2">{{ e.model }}</span>
+              </div>
+              <pre class="m-0">{{ e | json }}</pre>
+              <p-divider></p-divider>
+            </div>
+          </ng-container>
+          <ng-template #empty>
+            <div class="text-color-secondary">No entries yet. Submit the form to see results here.</div>
+          </ng-template>
+        </div>
+      </p-card>
+    </div>
+  </div>
+</div>
