@@ -1,0 +1,194 @@
+package rules
+
+import com.ftn.sbnz.model.models.TrafficDensity
+import com.ftn.sbnz.model.models.Accident
+import com.ftn.sbnz.model.models.PublicTransportDelay
+import com.ftn.sbnz.model.models.Weather
+import com.ftn.sbnz.model.models.EventDay
+import com.ftn.sbnz.model.models.Notification
+import com.ftn.sbnz.model.models.TrafficAction
+import com.ftn.sbnz.model.models.PedestrianDetected
+
+declare TrafficDensity
+    @role(event)
+    @timestamp(timestamp)
+end
+
+declare Accident
+    @role(event)
+    @timestamp(timestamp)
+end
+
+declare PublicTransportDelay
+    @role(event)
+    @timestamp(timestamp)
+end
+
+declare Weather
+    @role(event)
+    @timestamp(timestamp)
+end
+
+declare PedestrianDetected
+    @role(event)
+    @timestamp(timestamp)
+end
+
+// CEP Rule 1: Mass event congestion spread detection
+// Detects when traffic congestion spreads to 3+ crossroads within 10 minutes during major events
+rule "Mass event congestion spread"
+when
+    EventDay(expectedTraffic > 1000)
+    $count : Number(intValue >= 3) from accumulate(
+        TrafficDensity($c : crossroad, value > 80) over window:time(10m),
+        count($c)
+    )
+then
+    System.out.println(">>> CEP RULE 1 TRIGGERED <<<");
+    System.out.println("Mass event detected with congestion spreading to " + $count + " crossroads");
+    System.out.println("Activating traffic rerouting...");
+    
+    Notification n = new Notification("Mass event affecting multiple crossroads - rerouting needed. Affected crossroads: " + $count);
+    insert(n);
+    insert(new TrafficAction("SYSTEM", "activateRerouting", 60));
+    
+    System.out.println("CEP Notification: " + n);
+    System.out.println(">>> END CEP RULE 1 <<<");
+end
+
+// CEP Rule 2: Critical bus delay analysis with temporal correlation
+// Analyzes bus delays when combined with traffic conditions and weather over time windows
+rule "Critical bus delay cause"
+when
+    $delay : PublicTransportDelay($line : line, delayMinutes > 15)
+    $trafficCount : Number() from accumulate(
+        TrafficDensity(value > 80) over window:time(10m),
+        count(1)
+    )
+    $accidentCount : Number() from accumulate(
+        Accident(severity == "high") over window:time(10m),
+        count(1)
+    )
+    $weatherCount : Number(intValue > 0) from accumulate(
+        Weather(intensity == "high") over window:time(30m),
+        count(1)
+    )
+    eval($trafficCount.intValue() > 0 || $accidentCount.intValue() > 0)
+then
+    System.out.println(">>> CEP RULE 2 TRIGGERED <<<");
+    System.out.println("Critical delay analysis for bus line: " + $line);
+    System.out.println("Delay minutes: " + $delay.getDelayMinutes());
+    
+    String reason = "Bus " + $line + " critical delay due to combination of ";
+    if ($trafficCount.intValue() > 0) reason += "high traffic, ";
+    if ($accidentCount.intValue() > 0) reason += "accidents, ";
+    if ($weatherCount.intValue() > 0) reason += "severe weather";
+    
+    insert(new Notification(reason));
+    System.out.println("Notification: " + reason);
+    System.out.println(">>> END CEP RULE 2 <<<");
+end
+
+// CEP Rule 3: Average speed monitoring over 5 minutes
+// Monitors average traffic density over 5-minute sliding window
+rule "Average traffic density monitoring"
+when
+    $avgDensity : Number(doubleValue > 75) from accumulate(
+        TrafficDensity($value : value) over window:time(5m),
+        average($value)
+    )
+    $count : Number(intValue >= 3) from accumulate(
+        TrafficDensity() over window:time(5m),
+        count(1)
+    )
+then
+    System.out.println(">>> CEP RULE 3 TRIGGERED <<<");
+    System.out.println("High average traffic density over 5 minutes: " + String.format("%.2f", $avgDensity));
+    System.out.println("Number of measurements: " + $count);
+    
+    Notification n = new Notification("High average traffic density (" + 
+        String.format("%.1f", $avgDensity) + "%) detected across multiple crossroads");
+    insert(n);
+    
+    System.out.println("CEP Notification: " + n);
+    System.out.println(">>> END CEP RULE 3 <<<");
+end
+
+// CEP Rule 4: Pedestrian activity burst detection over 10 minutes
+// Detects high pedestrian activity bursts in short time periods
+rule "Pedestrian activity burst detection"
+when
+    $count : Number(intValue >= 5) from accumulate(
+        PedestrianDetected() over window:time(10m),
+        count(1)
+    )
+then
+    System.out.println(">>> CEP RULE 4 TRIGGERED <<<");
+    System.out.println("Pedestrian activity burst: " + $count + " detections in 10 minutes");
+    
+    Notification n = new Notification("High pedestrian activity burst: " + $count + 
+        " detections in 10 minutes");
+    insert(n);
+    
+    // Adjust traffic signals for pedestrian safety
+    insert(new TrafficAction("SYSTEM", "increasePedestrianTime", 15));
+    
+    System.out.println("CEP Notification: " + n);
+    System.out.println(">>> END CEP RULE 4 <<<");
+end
+
+// CEP Rule 5: Accident frequency monitoring over 15 minutes
+// Monitors accident patterns correlated with weather conditions
+rule "Accident frequency monitoring"
+when
+    $accidentCount : Number(intValue >= 2) from accumulate(
+        Accident() over window:time(15m),
+        count(1)
+    )
+    $weatherCount : Number(intValue > 0) from accumulate(
+        Weather(intensity == "heavy") over window:time(15m),
+        count(1)
+    )
+then
+    System.out.println(">>> CEP RULE 5 TRIGGERED <<<");
+    System.out.println("Multiple accidents in 15 minutes: " + $accidentCount);
+    System.out.println("Bad weather events: " + $weatherCount);
+    
+    Notification n = new Notification("Multiple accidents (" + $accidentCount + 
+        ") detected in bad weather conditions");
+    insert(n);
+    insert(new TrafficAction("SYSTEM", "weatherAlert", 30));
+    
+    System.out.println("CEP Notification: " + n);
+    System.out.println(">>> END CEP RULE 5 <<<");
+end
+
+// CEP Rule 6: Traffic congestion trend detection
+// Detects worsening traffic conditions over 20-minute periods
+rule "Traffic congestion trend detection"
+when
+    $maxDensity : Number(doubleValue > 85) from accumulate(
+        TrafficDensity($value : value) over window:time(20m),
+        max($value)
+    )
+    $minDensity : Number() from accumulate(
+        TrafficDensity($value : value) over window:time(20m),
+        min($value)
+    )
+    eval($maxDensity.doubleValue() - $minDensity.doubleValue() > 30)
+then
+    double densityIncrease = $maxDensity.doubleValue() - $minDensity.doubleValue();
+    
+    System.out.println(">>> CEP RULE 6 TRIGGERED <<<");
+    System.out.println("Traffic congestion trend detected over 20 minutes");
+    System.out.println("Max density: " + $maxDensity + ", Min density: " + $minDensity);
+    System.out.println("Density increase: " + densityIncrease + "%");
+    
+    Notification n = new Notification("Worsening traffic trend: density increased by " + 
+        String.format("%.0f", densityIncrease) + "% over 20 minutes");
+    insert(n);
+    insert(new TrafficAction("SYSTEM", "adaptiveSignaling", 45));
+    
+    System.out.println("CEP Notification: " + n);
+    System.out.println(">>> END CEP RULE 6 <<<");
+end

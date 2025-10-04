@@ -72,7 +72,8 @@ public CommandLineRunner testRules(KieContainer kieContainer) {
         for (QueryResultsRow row : jamResults) {
             String crossroad = (String) row.get("$cross");
             String cause = (String) row.get("$c");
-            System.out.println("Uzrok gužve na " + crossroad + " je: " + cause);
+            System.out.println("Uzrok gužve na " + cro
+            ssroad + " je: " + cause);
         }
         kieSession.dispose();
     };

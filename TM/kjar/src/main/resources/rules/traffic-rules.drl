@@ -7,15 +7,20 @@ import com.ftn.sbnz.model.models.Accident;
 import com.ftn.sbnz.model.models.IllegalParking;
 import com.ftn.sbnz.model.models.TimeOfDay;
 
-rule "Rush rour - extend the green light"
+rule "High traffic density - extend the green light and find cause"
 when 
     $t : TrafficDensity($c : crossroad, value > 70)
-    TimeOfDay($h : hour,  $h >= 7 && $h <= 9)
 then 
     insert(new TrafficAction($c, "extendGreen", 30));
-    Notification n1 = new Notification("Rush hour: extended green light on " + $c);
+    Notification n1 = new Notification("High traffic density: extended green light on " + $c);
     insert(n1);
     System.out.println(n1);
+    
+    // Insert a cause fact for querying
+    insert(new CauseFact($c, "high_traffic_density"));
+    
+    // Print querying message
+    System.out.println("Querying for root cause of high traffic density at " + $c);
 end
 
 

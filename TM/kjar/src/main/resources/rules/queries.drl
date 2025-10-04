@@ -2,15 +2,55 @@ package rules
 
 import com.ftn.sbnz.model.models.CauseFact
 import com.ftn.sbnz.model.models.PublicTransportDelay
+import com.ftn.sbnz.model.models.Crossroad
 
-// Query to explain why a bus line is delayed
-query "whyBusDelay"( String $line, String $crossroad )
-    PublicTransportDelay( $l : line, delayMinutes > 10 )
-    $cf : CauseFact( crossroad == $crossroad )
-    eval($l.equals($line))
+global java.util.Set visitedCrossroads;
+
+// Rule to clear visited crossroads at the start
+rule "Clear visited crossroads"
+when
+then
+    visitedCrossroads.clear();
 end
 
-// Query to explain why there is a traffic jam at a crossroad
-query "whyTrafficJam"( String $crossroad )
-    $cf : CauseFact( crossroad == $crossroad )
+// Rule to mark crossroad as visited
+rule "Mark crossroad as visited"
+when
+    $cf : CauseFact($cr : crossroad)
+then
+    visitedCrossroads.add($cr);
+end
+
+// Direct cause
+query "getCause"(String crossroad, String cause)
+    $cf : CauseFact(crossroad == crossroad, cause == cause)
+end
+
+// Simple explanation for bus delay using only direct cause
+query "whyBusDelaySimple"(String line, String crossroad, String cause)
+    PublicTransportDelay(line == line, delayMinutes > 10)
+    and $cf : CauseFact(crossroad == crossroad, cause == cause)
+end
+
+// Main query with cycle prevention
+query "findCauseOfDensity"(String target, String result) 
+    (
+        // Base case: Direct cause at the current crossroad
+        $cf : CauseFact(crossroad == target)
+        and
+        eval(result == $cf.getCause())
+    ) or (
+        // Recursive case: Look through connected crossroads that haven't been visited
+        Crossroad(id == target, $connections : connectedRoads)
+        and
+        String($next : this) from $connections
+        and
+        // Check that we haven't visited this crossroad before
+        eval(!visitedCrossroads.contains($next))
+        and
+        // Mark as visited before recursing
+        eval(visitedCrossroads.add($next))
+        and
+        findCauseOfDensity($next, result;)
+    )
 end
