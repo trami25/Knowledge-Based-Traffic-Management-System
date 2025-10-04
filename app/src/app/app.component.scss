@@ -56,3 +56,63 @@
 	font-weight: 600;
 	margin: 0;
 }
+
+/* Instance styles */
+.instances-container {
+  margin-bottom: 1rem;
+}
+
+.instances-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.instances-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.instances-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.instance-card {
+  padding: 1rem;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--border-radius);
+  background: var(--surface-card);
+}
+
+.instance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.instance-data pre {
+  font-size: 0.75rem;
+  background: var(--surface-100);
+  padding: 0.5rem;
+  border-radius: var(--border-radius);
+  overflow: auto;
+  max-height: 6rem;
+  margin: 0;
+}
+
+// Dark mode specific styles for instances
+:host-context(body.dark) {
+  .instance-card {
+    background: var(--surface-800);
+    border-color: var(--surface-700);
+  }
+
+  .instance-data pre {
+    background: var(--surface-900);
+    color: var(--text-color);
+  }
+}

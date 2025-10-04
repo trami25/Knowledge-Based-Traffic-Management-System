@@ -13,6 +13,50 @@
   <div class="layout-cols">
     <div class="left-pane">
       <p-card header="Model Input" subheader="Select a model and provide inputs">
+        <!-- Model Instances Display -->
+        @if (modelInstances().length > 0) {
+          <div class="instances-container mb-4">
+            <div class="instances-header flex justify-content-between align-items-center mb-3">
+              <h3 class="text-lg font-semibold m-0">Model Instances ({{ modelInstances().length }})</h3>
+              <div class="instances-actions flex gap-2">
+                <p-button 
+                  label="Clear All" 
+                  icon="pi pi-trash" 
+                  severity="secondary" 
+                  size="small"
+                  (click)="clearAllInstances()"
+                ></p-button>
+                <p-button 
+                  label="Submit All" 
+                  icon="pi pi-check" 
+                  severity="success" 
+                  size="small"
+                  (click)="submitAllInstances()"
+                ></p-button>
+              </div>
+            </div>
+            <div class="instances-list flex flex-column gap-2">
+              @for (instance of modelInstances(); track instance.id) {
+                <div class="instance-card p-3 border-1 border-300 border-round">
+                  <div class="instance-header flex justify-content-between align-items-center mb-2">
+                    <h4 class="text-base font-medium m-0">{{ instance.type | titlecase }}</h4>
+                    <p-button 
+                      icon="pi pi-times" 
+                      severity="danger" 
+                      size="small" 
+                      [text]="true"
+                      (click)="removeModelInstance(instance.id)"
+                    ></p-button>
+                  </div>
+                  <div class="instance-data">
+                    <pre class="text-xs bg-gray-100 p-2 border-round overflow-auto max-h-6rem">{{ instance.data | json }}</pre>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+        
         <div class="flex flex-column gap-3" [formGroup]="form">
           <div class="flex flex-column gap-2">
             <label for="model">Model</label>
@@ -69,6 +113,36 @@
               (formSubmit)="onDynamicFormSubmit($event)"
               (formReset)="onDynamicFormReset()"
             ></app-time-of-day>
+            
+            <app-crossroad
+              *ngSwitchCase="'crossroad'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-crossroad>
+            
+            <app-event-day
+              *ngSwitchCase="'eventDay'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-event-day>
+            
+            <app-illegal-parking
+              *ngSwitchCase="'illegalParking'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-illegal-parking>
+            
+            <app-pedestrian-detected
+              *ngSwitchCase="'pedestrianDetected'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-pedestrian-detected>
+            
+            <app-public-transport-delay
+              *ngSwitchCase="'publicTransportDelay'"
+              (formSubmit)="onDynamicFormSubmit($event)"
+              (formReset)="onDynamicFormReset()"
+            ></app-public-transport-delay>
             
             <div *ngSwitchDefault class="p-3 text-center text-color-secondary">
               Please select a model to see the input form.
