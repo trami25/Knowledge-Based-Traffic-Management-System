@@ -11,6 +11,7 @@ import com.ftn.sbnz.model.models.Crossroad;
 rule "Cause from Accident"
 when
     $a : Accident( $cr : crossroad )
+    exists Crossroad(id == $cr)  // Validate crossroad exists
 then
     insert(new CauseFact($cr, "accident"));
 end
@@ -18,6 +19,7 @@ end
 rule "Cause from EmergencyVehicle"
 when
     $e : EmergencyVehicle( $loc : location )
+    exists Crossroad(id == $loc)  // Validate crossroad exists
 then
     insert(new CauseFact($loc, "emergencyVehicle"));
 end
@@ -25,6 +27,7 @@ end
 rule "Cause from TrafficDensity"
 when
     $t : TrafficDensity( $cr : crossroad, value > 80 )
+    exists Crossroad(id == $cr)  // Validate crossroad exists
 then
     insert(new CauseFact($cr, "trafficDensity"));
 end
@@ -41,6 +44,7 @@ end
 rule "Propagate Cause upstream"
 when
     $nextCause : CauseFact( $nextCr : crossroad, $cause : cause )
+    exists Crossroad(id == $nextCr)  // Validate source crossroad exists
     $cr : Crossroad( $id : id, $connections : connectedRoads )
     String( this == $nextCr ) from $connections
     not CauseFact(crossroad == $id, cause == $cause)

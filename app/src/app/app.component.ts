@@ -74,6 +74,10 @@ import { PublicTransportDelayComponent } from './components/public-transport-del
   styleUrl: './app.component.scss',
 })
 export class AppComponent {
+  models = signal<any[]>([]);
+  showHistoryLog = false;
+
+  // Form and model configuration
   modelOptions = [
     { label: 'Accident', value: 'accident' },
     { label: 'Vehicle', value: 'vehicle' },
@@ -91,7 +95,7 @@ export class AppComponent {
 
   form: FormGroup;
   private _logs = signal<any[]>([]);
-  logs = computed(() => this._logs());
+  logs = computed((): any[] => this._logs() || []); // Explicit return type
   darkModeToggle = false;
 
   // Multiple models support
@@ -148,6 +152,11 @@ export class AppComponent {
     this._modelInstances.set([]);
   }
 
+  // Clear current results/logs
+  clearCurrentResults() {
+    this._logs.set([]);
+  }
+
   submitAllInstances() {
     const instances = this._modelInstances();
     if (instances.length === 0) {
@@ -173,7 +182,7 @@ export class AppComponent {
       })
       .subscribe({
         next: (response: any) => {
-          // Log successful response
+          // Log successful response - REPLACE previous logs instead of adding
           const entry = {
             timestamp: new Date().toISOString(),
             models: instances.map((i) => i.type),
@@ -182,13 +191,13 @@ export class AppComponent {
             result: `Successfully processed ${instances.length} model instances`,
             status: 'success',
           };
-          this._logs.update((arr) => [entry, ...arr]);
+          this._logs.set([entry]); // CLEAR previous and set only current result
 
           // Clear instances after successful submission
           this.clearAllInstances();
         },
         error: (error: any) => {
-          // Log error response
+          // Log error response - REPLACE previous logs instead of adding
           const entry = {
             timestamp: new Date().toISOString(),
             models: instances.map((i) => i.type),
@@ -197,7 +206,7 @@ export class AppComponent {
             result: `Failed to process ${instances.length} model instances`,
             status: 'error',
           };
-          this._logs.update((arr) => [entry, ...arr]);
+          this._logs.set([entry]); // CLEAR previous and set only current result
           console.error('API Error:', error);
         },
       });
@@ -224,7 +233,7 @@ export class AppComponent {
       })
       .subscribe({
         next: (response: any) => {
-          // Log successful response
+          // Log successful response - REPLACE previous logs instead of adding
           const entry = {
             timestamp: new Date().toISOString(),
             model: modelType,
@@ -233,10 +242,10 @@ export class AppComponent {
             result: `Successfully processed ${modelType}`,
             status: 'success',
           };
-          this._logs.update((arr) => [entry, ...arr]);
+          this._logs.set([entry]); // CLEAR previous and set only current result
         },
         error: (error: any) => {
-          // Log error response
+          // Log error response - REPLACE previous logs instead of adding
           const entry = {
             timestamp: new Date().toISOString(),
             model: modelType,
@@ -245,7 +254,7 @@ export class AppComponent {
             result: `Failed to process ${modelType}`,
             status: 'error',
           };
-          this._logs.update((arr) => [entry, ...arr]);
+          this._logs.set([entry]); // CLEAR previous and set only current result
           console.error('API Error:', error);
         },
       });
@@ -285,5 +294,175 @@ export class AppComponent {
   toggleDarkMode() {
     document.body.classList.toggle('dark', this.darkModeToggle);
     localStorage.setItem('darkMode', String(this.darkModeToggle));
+  }
+
+  // Helper methods for displaying output logs
+  getModelListString(models: string[]): string {
+    if (!models || models.length === 0) return 'No models';
+    return models.join(', ');
+  }
+
+  getStatusClass(status: string): string {
+    switch (status) {
+      case 'success': return 'text-green-500';
+      case 'error': return 'text-red-500';
+      default: return 'text-gray-500';
+    }
+  }
+
+  getTrafficActions(response: any[]): any[] {
+    if (!response || !Array.isArray(response)) return [];
+    return response.filter(item => item.query === 'TrafficAction' || item.queryName === 'TrafficAction');
+  }
+
+  getNotifications(response: any[]): any[] {
+    if (!response || !Array.isArray(response)) return [];
+    return response.filter(item => item.query === 'Notification' || item.queryName === 'Notification');
+  }
+
+  getValidationErrors(response: any[]): any[] {
+    if (!response || !Array.isArray(response)) return [];
+    return response.filter(item => item.query === 'ValidationError' || item.queryName === 'ValidationError');
+  }
+
+  getQueryResults(response: any[]): any[] {
+    if (!response || !Array.isArray(response)) return [];
+    return response.filter(item => 
+      (item.query !== 'TrafficAction' && item.query !== 'Notification' && item.query !== 'ValidationError') &&
+      (item.queryName !== 'TrafficAction' && item.queryName !== 'Notification' && item.queryName !== 'ValidationError')
+    );
+  }
+
+  toggleRawResponse(logEntry: any): void {
+    logEntry.showRaw = !logEntry.showRaw;
+  }
+
+  // Helper method to get current time for display
+  getCurrentTime(): string {
+    return new Date().toLocaleTimeString();
+  }
+
+
+
+  // Helper method to get notification priority
+  getNotificationPriority(message: string): 'high' | 'medium' | 'low' {
+    if (message.includes('accident') || message.includes('block') || message.includes('emergency')) {
+      return 'high';
+    }
+    if (message.includes('weather') || message.includes('delay') || message.includes('density')) {
+      return 'medium';
+    }
+    return 'low';
+  }
+
+  // Helper method to format action result with emoji
+  formatActionResult(action: any): string {
+    const actionText = action.cause || action.result || action.action || 'Unknown action';
+    return `${actionText}`;
+  }
+
+  // Helper method to format notification message
+  formatNotificationMessage(notification: any): string {
+    return notification.cause || notification.message || notification.description || 'Unknown notification';
+  }
+
+  // Helper method to get crossroad info
+  getCrossroadInfo(item: any): string {
+    return item.crossroad || item.location || 'N/A';
+  }
+
+  // New methods for the updated UI
+  toggleRequestDetails(logEntry: any): void {
+    logEntry.showRequestDetails = !logEntry.showRequestDetails;
+  }
+
+  formatRequestData(logEntry: any): string {
+    const requestData = {
+      models: logEntry.models,
+      timestamp: logEntry.timestamp,
+      facts: logEntry.models?.map((m: any) => ({
+        type: m.type,
+        data: m.data
+      })) || []
+    };
+    return JSON.stringify(requestData, null, 2);
+  }
+
+  hasAnyResponses(): boolean {
+    return this.logs().some(log => 
+      log.response && Array.isArray(log.response) && log.response.length > 0
+    );
+  }
+
+  getAllActions(): any[] {
+    const allActions: any[] = [];
+    this.logs().forEach(log => {
+      if (log.response) {
+        allActions.push(...this.getTrafficActions(log.response));
+      }
+    });
+    return allActions;
+  }
+
+  getAllNotifications(): any[] {
+    const allNotifications: any[] = [];
+    this.logs().forEach(log => {
+      if (log.response) {
+        allNotifications.push(...this.getNotifications(log.response));
+      }
+    });
+    return allNotifications;
+  }
+
+  getAllValidationErrors(): any[] {
+    const allErrors: any[] = [];
+    this.logs().forEach(log => {
+      if (log.response) {
+        allErrors.push(...this.getValidationErrors(log.response));
+      }
+    });
+    return allErrors;
+  }
+
+  getAllQueries(): any[] {
+    const allQueries: any[] = [];
+    this.logs().forEach(log => {
+      if (log.response) {
+        allQueries.push(...this.getQueryResults(log.response));
+      }
+    });
+    return allQueries;
+  }
+
+  getTotalActions(): number {
+    return this.getAllActions().length;
+  }
+
+  getTotalNotifications(): number {
+    return this.getAllNotifications().length;
+  }
+
+  getTotalValidationErrors(): number {
+    return this.getAllValidationErrors().length;
+  }
+
+  getTotalQueries(): number {
+    return this.getAllQueries().length;
+  }
+
+  getNotificationIcon(message: string): string {
+    if (message.includes('accident') || message.includes('block')) {
+      return 'pi-exclamation-triangle';
+    }
+    if (message.includes('weather') || message.includes('alert')) {
+      return 'pi-cloud';
+    }
+    if (message.includes('pedestrian')) {
+      return 'pi-user';
+    }
+    if (message.includes('parking')) {
+      return 'pi-car';
+    }
+    return 'pi-info-circle';
   }
 }

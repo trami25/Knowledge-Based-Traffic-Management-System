@@ -6,9 +6,7 @@ xmlns="http://jboss.org/kie/6.0.0/kmodule">
             template="rules/green-light-template.drt"
             row="2" col="1" />
         <ksession name="ksession-rules">
-            <globals>
-                <global identifier="visitedCrossroads" type="java.util.Set" />
-            </globals>
+           
         </ksession>
     </kbase>
 </kmodule>

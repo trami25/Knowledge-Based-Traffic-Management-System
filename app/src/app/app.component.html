@@ -153,23 +153,227 @@
     </div>
 
     <div class="right-pane">
-      <p-card header="Output Log" subheader="Recent responses (newest first)">
-        <div class="log-scroll">
-          <ng-container *ngIf="logs()?.length; else empty">
-            <div class="log-entry" *ngFor="let e of logs()">
-              <div class="log-meta">
-                <span class="pi pi-clock mr-2"></span>
-                <strong>{{ e.timestamp }}</strong>
-                <span class="ml-2">•</span>
-                <span class="ml-2">{{ e.model }}</span>
+      <!-- Request Monitor Section -->
+      <p-card header="Request Monitor" subheader="Data sent to backend" class="mb-3">
+        <div class="request-monitor">
+          <ng-container *ngIf="logs().length; else noRequests">
+            <div class="latest-request" *ngIf="logs()[0] as latestLog">
+              <div class="request-header">
+                <span class="pi pi-send mr-2"></span>
+                <strong>Latest Request</strong>
+                <span class="ml-2 request-time">{{ latestLog.timestamp }}</span>
+                <span class="ml-2 status-badge" [class]="getStatusClass(latestLog.status)">
+                  {{ latestLog.status | titlecase }}
+                </span>
               </div>
-              <pre class="m-0">{{ e | json }}</pre>
-              <p-divider></p-divider>
+              
+              <div class="request-content">
+                <div class="models-summary">
+                  <span class="pi pi-database mr-2"></span>
+                  <strong>Models:</strong> {{ getModelListString(latestLog.models) }}
+                </div>
+                
+                <div class="request-details mt-2">
+                  <p-button 
+                    [label]="latestLog.showRequestDetails ? 'Hide Request Details' : 'Show Request Details'"
+                    icon="pi pi-eye"
+                    size="small"
+                    [text]="true"
+                    (click)="toggleRequestDetails(latestLog)"
+                  ></p-button>
+                  
+                  <div *ngIf="latestLog.showRequestDetails" class="request-data mt-2">
+                    <pre class="request-json">{{ formatRequestData(latestLog) }}</pre>
+                  </div>
+                </div>
+              </div>
             </div>
           </ng-container>
-          <ng-template #empty>
-            <div class="text-color-secondary">No entries yet. Submit the form to see results here.</div>
+          
+          <ng-template #noRequests>
+            <div class="empty-state">
+              <span class="pi pi-inbox empty-icon"></span>
+              <p>No requests sent yet</p>
+            </div>
           </ng-template>
+        </div>
+      </p-card>
+
+      <!-- Response Dashboard Section -->
+      <p-card header="Response Dashboard" subheader="Recent query results - cleared on each new request">
+        <ng-template pTemplate="header">
+          <div class="flex justify-content-between align-items-center w-full">
+            <div>
+              <div class="text-xl font-semibold">Response Dashboard</div>
+              <div class="text-sm text-color-secondary">Recent query results - cleared on each new request</div>
+            </div>
+            <p-button 
+              *ngIf="logs().length > 0"
+              label="Clear Results" 
+              icon="pi pi-trash" 
+              severity="secondary" 
+              size="small"
+              (click)="clearCurrentResults()"
+            ></p-button>
+          </div>
+        </ng-template>
+        
+        <div class="response-dashboard">
+          <ng-container *ngIf="logs().length && hasAnyResponses(); else noResponses">
+            
+            <!-- Quick Stats -->
+            <div class="stats-overview mb-3">
+              <div class="stat-card actions-stat">
+                <div class="stat-icon"></div>
+                <div class="stat-info">
+                  <div class="stat-number">{{ getTotalActions() }}</div>
+                  <div class="stat-label">Traffic Actions</div>
+                </div>
+              </div>
+              
+              <div class="stat-card notifications-stat">
+                <div class="stat-icon"></div>
+                <div class="stat-info">
+                  <div class="stat-number">{{ getTotalNotifications() }}</div>
+                  <div class="stat-label">Notifications</div>
+                </div>
+              </div>
+              
+              <div class="stat-card queries-stat">
+                <div class="stat-icon"></div>
+                <div class="stat-info">
+                  <div class="stat-number">{{ getTotalQueries() }}</div>
+                  <div class="stat-label">Query Results</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Live Actions Panel -->
+            <div class="response-panel actions-panel mb-3" *ngIf="getAllActions().length > 0">
+              <div class="panel-header">
+                <h4><span class="pi pi-cog mr-2"></span>Active Traffic Actions</h4>
+                <span class="count-badge">{{ getAllActions().length }}</span>
+              </div>
+              <div class="panel-content">
+                <div class="action-item" *ngFor="let action of getAllActions(); let i = index">
+                  <div class="action-main">
+                    <div class="action-location">
+                      <span class="location-icon"></span>
+                      <span class="location-name">{{ getCrossroadInfo(action) }}</span>
+                    </div>
+                    <div class="action-command">
+                      {{ formatActionResult(action) }}
+                    </div>
+                  </div>
+                  <div class="action-meta">
+                    <span class="action-id">#{{ i + 1 }}</span>
+                    <span class="action-status status-active">ACTIVE</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Live Notifications Panel -->
+            <div class="response-panel notifications-panel mb-3" *ngIf="getAllNotifications().length > 0">
+              <div class="panel-header">
+                <h4><span class="pi pi-bell mr-2"></span>System Notifications</h4>
+                <span class="count-badge">{{ getAllNotifications().length }}</span>
+              </div>
+              <div class="panel-content">
+                <div class="notification-item" 
+                     *ngFor="let notification of getAllNotifications(); let i = index"
+                     [class]="'priority-' + getNotificationPriority(formatNotificationMessage(notification))">
+                  <div class="notification-icon">
+                    <span class="pi" 
+                          [class]="getNotificationIcon(formatNotificationMessage(notification))"></span>
+                  </div>
+                  <div class="notification-content">
+                    <div class="notification-message">{{ formatNotificationMessage(notification) }}</div>
+                    <div class="notification-meta">
+                      <span class="priority-badge">{{ getNotificationPriority(formatNotificationMessage(notification)) | titlecase }}</span>
+                      <span class="notification-id">#{{ i + 1 }}</span>
+                      <span class="notification-location" *ngIf="getCrossroadInfo(notification) !== 'N/A'">
+                        {{ getCrossroadInfo(notification) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Query Results Panel -->
+            <div class="response-panel queries-panel" *ngIf="getAllQueries().length > 0">
+              <div class="panel-header">
+                <h4><span class="pi pi-search mr-2"></span>Query Results</h4>
+                <span class="count-badge">{{ getAllQueries().length }}</span>
+              </div>
+              <div class="panel-content">
+                <div class="query-item" *ngFor="let query of getAllQueries(); let i = index">
+                  <div class="query-header">
+                    <span class="query-name">{{ query.queryName }}</span>
+                    <span class="query-location">{{ query.crossroad }}</span>
+                  </div>
+                  <div class="query-result">{{ query.result }}</div>
+                </div>
+              </div>
+            </div>
+
+          </ng-container>
+          
+          <ng-template #noResponses>
+            <div class="empty-state">
+              <span class="pi pi-chart-line empty-icon"></span>
+              <p>No responses received yet</p>
+              <small>Submit a request to see traffic actions and notifications here</small>
+            </div>
+          </ng-template>
+        </div>
+      </p-card>
+
+      <!-- Historical Log (Collapsible) -->
+      <p-card header="Request History" subheader="Complete log of all requests and responses" class="mt-3">
+        <p-button 
+          [label]="showHistoryLog ? 'Hide History' : 'Show History'"
+          icon="pi pi-history"
+          size="small"
+          [text]="true"
+          (click)="showHistoryLog = !showHistoryLog"
+          class="mb-3"
+        ></p-button>
+        
+        <div *ngIf="showHistoryLog" class="history-log">
+          <div class="log-scroll">
+            <ng-container *ngIf="logs().length; else empty">
+              <div class="log-entry" *ngFor="let e of logs()">
+                <div class="log-meta">
+                  <span class="pi pi-clock mr-2"></span>
+                  <strong>{{ e.timestamp }}</strong>
+                  <span class="ml-2">•</span>
+                  <span class="ml-2">{{ getModelListString(e.models) }}</span>
+                  <span class="ml-2" [class]="getStatusClass(e.status)">{{ e.status | titlecase }}</span>
+                </div>
+                
+                <!-- Raw Response (Collapsed by default) -->
+                <div class="output-section mt-3">
+                  <p-button 
+                    [label]="e.showRaw ? 'Hide Raw Response' : 'Show Raw Response'"
+                    icon="pi pi-code"
+                    size="small"
+                    [text]="true"
+                    (click)="toggleRawResponse(e)"
+                  ></p-button>
+                  <div *ngIf="e.showRaw" class="raw-response mt-2">
+                    <pre class="m-0">{{ e | json }}</pre>
+                  </div>
+                </div>
+
+                <p-divider></p-divider>
+              </div>
+            </ng-container>
+            <ng-template #empty>
+              <div class="text-color-secondary">No entries yet. Submit the form to see results here.</div>
+            </ng-template>
+          </div>
         </div>
       </p-card>
     </div>

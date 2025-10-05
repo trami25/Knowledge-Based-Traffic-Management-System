@@ -3,10 +3,12 @@ import com.ftn.sbnz.model.models.EmergencyVehicle;
 import com.ftn.sbnz.model.models.PublicTransportDelay;
 import com.ftn.sbnz.model.models.TrafficAction;
 import com.ftn.sbnz.model.models.Notification;
+import com.ftn.sbnz.model.models.Crossroad;
 
 rule "Emergency vehicle priority"
 when
     EmergencyVehicle($c : location, $d : direction)
+    exists Crossroad(id == $c)  // Validate crossroad exists
 then
     insert(new TrafficAction($c, "allowPass", "priority"));
     Notification n = new Notification("Priority for emergency vehicle on crossroad " + $c);
@@ -17,6 +19,7 @@ end
 rule "Bus delay - priority"
 when
     PublicTransportDelay($line : line, delayMinutes > 10)
+    // Note: This rule applies to "All" crossroads, so no specific crossroad validation needed
 then
     insert(new TrafficAction("All", "prioritizeBus", $line));
     Notification n = new Notification("Autobus " + $line + " is delayed, give the priority on traffic lights");
