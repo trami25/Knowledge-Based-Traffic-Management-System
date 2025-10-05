@@ -9,6 +9,7 @@ import com.ftn.sbnz.model.models.reports.DailyTrafficSummary;
 import com.ftn.sbnz.model.models.reports.TrendReport;
 import com.ftn.sbnz.model.models.reports.CongestionInterval;
 import com.ftn.sbnz.model.models.reports.MaxPeriodReport;
+import com.ftn.sbnz.model.models.Crossroad;
 
 declare Vehicle
     @role( event )
@@ -25,6 +26,7 @@ end
 rule "Generate NormalReport"
 when
     $td : TrafficDensity($c : crossroad, $density : value)
+    exists Crossroad(id == $c)  // Validate crossroad exists
     accumulate( $v : Vehicle(crossroad == $c) over window:time(5m),
                 $avgSpeed : average($v.speed) )
     accumulate( $a : Accident(crossroad == $c) over window:time(15m),
@@ -40,6 +42,7 @@ end
 rule "Generate TrendReport"
 when
     $req : ReportRequest(type == "Trend", $cr : crossroadId, $from : fromDate, $to : toDate, $period : period)
+    exists Crossroad(id == $cr)  // Validate crossroad exists
     accumulate(
         $d : DailyTrafficSummary(crossroad == $cr,
                                  date >= $from, date <= $to,
@@ -57,6 +60,7 @@ end
 rule "Generate MaxPeriodReport"
 when
     $req : ReportRequest(type == "MaxPeriod", $cr : crossroadId)
+    exists Crossroad(id == $cr)  // Validate crossroad exists
     accumulate(
         $ci : CongestionInterval(crossroad == $cr),
         $maxDur : max($ci.getDuration())

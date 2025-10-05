@@ -6,10 +6,13 @@ import com.ftn.sbnz.model.models.PedestrianDetected;
 import com.ftn.sbnz.model.models.Accident;
 import com.ftn.sbnz.model.models.IllegalParking;
 import com.ftn.sbnz.model.models.TimeOfDay;
+import com.ftn.sbnz.model.models.Crossroad;
+import com.ftn.sbnz.model.models.CauseFact;
 
 rule "High traffic density - extend the green light and find cause"
 when 
     $t : TrafficDensity($c : crossroad, value > 70)
+    exists Crossroad(id == $c)  // Validate crossroad exists
 then 
     insert(new TrafficAction($c, "extendGreen", 30));
     Notification n1 = new Notification("High traffic density: extended green light on " + $c);
@@ -27,6 +30,7 @@ end
 rule "Accident detected - block crossroad"
 when
     Accident($c : crossroad, severity == "high")
+    exists Crossroad(id == $c)  // Validate crossroad exists
 then
     insert(new TrafficAction($c, "blockCrossroad"));
     Notification n2 = new Notification("Accident on " + $c + " – crossroad is blocked");
@@ -37,6 +41,7 @@ end
 rule "Pedestrian crossing - red light"
 when
     PedestrianDetected($c : crossroad)
+    exists Crossroad(id == $c)  // Validate crossroad exists
 then
     insert(new TrafficAction($c, "setRedForVehicles"));
     Notification n3 = new Notification("Pedestrian detected on " + $c);
@@ -47,6 +52,7 @@ end
 rule "Illegal parking notification"
 when
     IllegalParking($c : crossroad)
+    exists Crossroad(id == $c)  // Validate crossroad exists
 then
     Notification n4 = new Notification("Illegal parking on " + $c);
     insert(n4);
